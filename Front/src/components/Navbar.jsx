@@ -55,7 +55,7 @@ const Navbar = () => {
     const pagesWithDarkHero = ['/', '/about', '/collections'];
     const isProductDetailsPage = location.pathname.startsWith('/collections/') && location.pathname !== '/collections';
     const shouldUseWhiteText = !isScrolled && (pagesWithDarkHero.includes(location.pathname) || isProductDetailsPage);
-    
+
     const linkStyle = {
         color: shouldUseWhiteText ? 'var(--color-white)' : 'var(--color-text)',
         fontWeight: 500,
@@ -90,8 +90,8 @@ const Navbar = () => {
 
                     {!isAuthPage && (isLoggedIn ? (
                         <>
-                            <Link 
-                                to="/" 
+                            <Link
+                                to="/"
                                 style={linkStyle}
                                 onClick={() => {
                                     if (location.pathname === '/') {
@@ -101,8 +101,8 @@ const Navbar = () => {
                             >
                                 Home
                             </Link>
-                            <Link 
-                                to="/collections" 
+                            <Link
+                                to="/collections"
                                 style={linkStyle}
                                 onClick={() => {
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,8 +110,8 @@ const Navbar = () => {
                             >
                                 Collections
                             </Link>
-                            <Link 
-                                to="/about" 
+                            <Link
+                                to="/about"
                                 style={linkStyle}
                                 onClick={() => {
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -200,244 +200,247 @@ const Navbar = () => {
             </AnimatePresence>
 
             {/* Mobile Sidebar Menu */}
-            <motion.div
-                className="mobile-menu"
-                initial={false}
-                animate={{
-                    x: isMobileMenuOpen ? 0 : '100%',
-                }}
-                transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    right: 0,
-                    width: '280px',
-                    height: '100vh',
-                    background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80")',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.3)',
-                    zIndex: 9999,
-                    padding: '2rem 1.5rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1.5rem',
-                    overflowY: 'auto'
-                }}
-            >
-                {/* Close Button */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ 
-                        fontFamily: "'Playfair Display', serif",
-                        fontSize: '1.25rem',
-                        fontWeight: 700,
-                        color: 'var(--color-white)'
-                    }}>
-                        Menu
-                    </h3>
-                    <button
-                        onClick={() => setIsMobileMenuOpen(false)}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        className="mobile-menu"
+                        initial={{ x: '100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '100%' }}
+                        transition={{ type: 'tween', duration: 0.3, ease: 'easeInOut' }}
                         style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '0.5rem',
+                            position: 'fixed',
+                            top: 0,
+                            right: 0,
+                            width: '280px',
+                            height: '100vh',
+                            background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80")',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            backdropFilter: 'blur(10px)',
+                            boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.3)',
+                            zIndex: 9999,
+                            padding: '2rem 1.5rem',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '2rem',
-                            height: '2rem',
-                            borderRadius: '0.25rem',
-                            transition: 'background-color 0.2s',
-                            position: 'relative'
+                            flexDirection: 'column',
+                            gap: '1.5rem',
+                            overflowY: 'auto'
                         }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                        aria-label="Close menu"
                     >
-                        <span style={{
-                            position: 'absolute',
-                            width: '1.25rem',
-                            height: '2px',
-                            backgroundColor: 'var(--color-white)',
-                            transform: 'rotate(45deg)',
-                            borderRadius: '1px'
-                        }}></span>
-                        <span style={{
-                            position: 'absolute',
-                            width: '1.25rem',
-                            height: '2px',
-                            backgroundColor: 'var(--color-white)',
-                            transform: 'rotate(-45deg)',
-                            borderRadius: '1px'
-                        }}></span>
-                    </button>
-                </div>
-
-                {/* Navigation Items */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {!isAuthPage && (isLoggedIn ? (
-                        <>
-                            <Link 
-                                to="/" 
-                                onClick={() => {
-                                    setIsMobileMenuOpen(false);
-                                    if (location.pathname === '/') {
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }
-                                }}
-                                style={{ 
-                                    color: 'var(--color-white)', 
-                                    fontWeight: 500,
-                                    fontSize: '1rem',
-                                    padding: '0.75rem 0',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                    textDecoration: 'none',
-                                    transition: 'color 0.2s, transform 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.color = 'var(--color-secondary)';
-                                    e.target.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.color = 'var(--color-white)';
-                                    e.target.style.transform = 'translateX(0)';
-                                }}
-                            >
-                                Home
-                            </Link>
-                            <Link 
-                                to="/collections" 
-                                onClick={() => {
-                                    setIsMobileMenuOpen(false);
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                style={{ 
-                                    color: 'var(--color-white)', 
-                                    fontWeight: 500,
-                                    fontSize: '1rem',
-                                    padding: '0.75rem 0',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                    textDecoration: 'none',
-                                    transition: 'color 0.2s, transform 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.color = 'var(--color-secondary)';
-                                    e.target.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.color = 'var(--color-white)';
-                                    e.target.style.transform = 'translateX(0)';
-                                }}
-                            >
-                                Collections
-                            </Link>
-                            <Link 
-                                to="/about" 
-                                onClick={(e) => {
-                                    setIsMobileMenuOpen(false);
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                style={{ 
-                                    color: 'var(--color-white)', 
-                                    fontWeight: 500,
-                                    fontSize: '1rem',
-                                    padding: '0.75rem 0',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                    textDecoration: 'none',
-                                    transition: 'color 0.2s, transform 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.color = 'var(--color-secondary)';
-                                    e.target.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.color = 'var(--color-white)';
-                                    e.target.style.transform = 'translateX(0)';
-                                }}
-                            >
-                                About
-                            </Link>
-                            <span 
-                                onClick={() => {
-                                    handleLogout();
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                style={{ 
-                                    color: 'var(--color-white)', 
-                                    fontWeight: 500,
-                                    fontSize: '1rem',
-                                    padding: '0.75rem 0',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                        {/* Close Button */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{
+                                fontFamily: "'Playfair Display', serif",
+                                fontSize: '1.25rem',
+                                fontWeight: 700,
+                                color: 'var(--color-white)'
+                            }}>
+                                Menu
+                            </h3>
+                            <button
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
                                     cursor: 'pointer',
-                                    transition: 'color 0.2s, transform 0.2s'
+                                    padding: '0.5rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '2rem',
+                                    height: '2rem',
+                                    borderRadius: '0.25rem',
+                                    transition: 'background-color 0.2s',
+                                    position: 'relative'
                                 }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.color = 'var(--color-secondary)';
-                                    e.target.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.color = 'var(--color-white)';
-                                    e.target.style.transform = 'translateX(0)';
-                                }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                aria-label="Close menu"
                             >
-                                Logout
-                            </span>
-                        </>
-                    ) : (
-                        <>
-                            <Link 
-                                to="/login" 
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                style={{ 
-                                    color: 'var(--color-white)', 
-                                    fontWeight: 500,
-                                    fontSize: '1rem',
-                                    padding: '0.75rem 0',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                    textDecoration: 'none',
-                                    transition: 'color 0.2s, transform 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.color = 'var(--color-secondary)';
-                                    e.target.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.color = 'var(--color-white)';
-                                    e.target.style.transform = 'translateX(0)';
-                                }}
-                            >
-                                Log In
-                            </Link>
-                            <Link 
-                                to="/signup" 
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                style={{ 
-                                    color: 'var(--color-white)', 
-                                    fontWeight: 500,
-                                    fontSize: '1rem',
-                                    padding: '0.75rem 0',
-                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                    textDecoration: 'none',
-                                    transition: 'color 0.2s, transform 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.target.style.color = 'var(--color-secondary)';
-                                    e.target.style.transform = 'translateX(5px)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.color = 'var(--color-white)';
-                                    e.target.style.transform = 'translateX(0)';
-                                }}
-                            >
-                                Sign Up
-                            </Link>
-                        </>
-                    ))}
-                </div>
-            </motion.div>
+                                <span style={{
+                                    position: 'absolute',
+                                    width: '1.25rem',
+                                    height: '2px',
+                                    backgroundColor: 'var(--color-white)',
+                                    transform: 'rotate(45deg)',
+                                    borderRadius: '1px'
+                                }}></span>
+                                <span style={{
+                                    position: 'absolute',
+                                    width: '1.25rem',
+                                    height: '2px',
+                                    backgroundColor: 'var(--color-white)',
+                                    transform: 'rotate(-45deg)',
+                                    borderRadius: '1px'
+                                }}></span>
+                            </button>
+                        </div>
+
+                        {/* Navigation Items */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {!isAuthPage && (isLoggedIn ? (
+                                <>
+                                    <Link
+                                        to="/"
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            if (location.pathname === '/') {
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }
+                                        }}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s, transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.color = 'var(--color-secondary)';
+                                            e.target.style.transform = 'translateX(5px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.color = 'var(--color-white)';
+                                            e.target.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        Home
+                                    </Link>
+                                    <Link
+                                        to="/collections"
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s, transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.color = 'var(--color-secondary)';
+                                            e.target.style.transform = 'translateX(5px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.color = 'var(--color-white)';
+                                            e.target.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        Collections
+                                    </Link>
+                                    <Link
+                                        to="/about"
+                                        onClick={(e) => {
+                                            setIsMobileMenuOpen(false);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s, transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.color = 'var(--color-secondary)';
+                                            e.target.style.transform = 'translateX(5px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.color = 'var(--color-white)';
+                                            e.target.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        About
+                                    </Link>
+                                    <span
+                                        onClick={() => {
+                                            handleLogout();
+                                            setIsMobileMenuOpen(false);
+                                        }}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            cursor: 'pointer',
+                                            transition: 'color 0.2s, transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.color = 'var(--color-secondary)';
+                                            e.target.style.transform = 'translateX(5px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.color = 'var(--color-white)';
+                                            e.target.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        Logout
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s, transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.color = 'var(--color-secondary)';
+                                            e.target.style.transform = 'translateX(5px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.color = 'var(--color-white)';
+                                            e.target.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        Log In
+                                    </Link>
+                                    <Link
+                                        to="/signup"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s, transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.target.style.color = 'var(--color-secondary)';
+                                            e.target.style.transform = 'translateX(5px)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.target.style.color = 'var(--color-white)';
+                                            e.target.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </nav>
     );
 };
