@@ -21,7 +21,7 @@ const Collections = () => {
             id: 1,
             name: "Classic Elegance Suit",
             category: "Formal Wear",
-            price: "$299",
+            price: "₹15000",
             description: "A timeless black suit perfect for formal occasions. Crafted with premium fabric and impeccable tailoring.",
             image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&h=600&fit=crop",
             features: ["Premium Fabric", "Perfect Fit", "Dry Clean Only"]
@@ -30,7 +30,7 @@ const Collections = () => {
             id: 2,
             name: "Casual Denim Collection",
             category: "Casual Wear",
-            price: "$89",
+            price: "₹1500",
             description: "Comfortable and stylish denim pieces for everyday wear. Made from high-quality denim with modern cuts.",
             image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&h=600&fit=crop",
             features: ["100% Cotton", "Machine Washable", "Multiple Colors"]
@@ -39,7 +39,7 @@ const Collections = () => {
             id: 3,
             name: "Vintage Leather Jacket",
             category: "Outerwear",
-            price: "$349",
+            price: "₹3500",
             description: "Authentic vintage-style leather jacket with classic design. Premium genuine leather construction.",
             image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&h=600&fit=crop",
             features: ["Genuine Leather", "Classic Design", "Durable"]
@@ -48,7 +48,7 @@ const Collections = () => {
             id: 4,
             name: "Summer Linen Shirt",
             category: "Casual Wear",
-            price: "$79",
+            price: "₹2000",
             description: "Lightweight and breathable linen shirt perfect for warm weather. Elegant and comfortable.",
             image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800&h=600&fit=crop",
             features: ["100% Linen", "Breathable", "Wrinkle Resistant"]
@@ -57,7 +57,7 @@ const Collections = () => {
             id: 5,
             name: "Designer Tuxedo",
             category: "Formal Wear",
-            price: "$599",
+            price: "₹2700",
             description: "Luxury tuxedo for special events. Handcrafted with attention to detail and premium materials.",
             image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop",
             features: ["Premium Materials", "Handcrafted", "Perfect for Events"]
@@ -66,7 +66,7 @@ const Collections = () => {
             id: 6,
             name: "Athletic Sportswear",
             category: "Activewear",
-            price: "$129",
+            price: "₹7200",
             description: "High-performance athletic wear designed for comfort and mobility. Perfect for workouts and sports.",
             image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop",
             features: ["Moisture Wicking", "Flexible", "Durable"]
@@ -75,7 +75,7 @@ const Collections = () => {
             id: 7,
             name: "Bohemian Floral Dress",
             category: "Dresses",
-            price: "$149",
+            price: "₹12000",
             description: "Beautiful bohemian-style dress with floral patterns. Flowing and elegant design perfect for any occasion.",
             image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=600&fit=crop",
             features: ["Floral Pattern", "Comfortable Fit", "Versatile"]
@@ -84,7 +84,7 @@ const Collections = () => {
             id: 8,
             name: "Winter Wool Coat",
             category: "Outerwear",
-            price: "$399",
+            price: "₹2000",
             description: "Warm and stylish wool coat for cold weather. Classic design with modern touches.",
             image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&h=600&fit=crop",
             features: ["100% Wool", "Warm", "Classic Style"]
@@ -93,7 +93,7 @@ const Collections = () => {
             id: 9,
             name: "Business Casual Blazer",
             category: "Formal Wear",
-            price: "$249",
+            price: "₹15000",
             description: "Versatile blazer that transitions from office to evening. Professional yet stylish.",
             image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&h=600&fit=crop",
             features: ["Versatile", "Professional", "Comfortable"]
