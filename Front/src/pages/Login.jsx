@@ -6,6 +6,8 @@ import Button from '../components/Button';
 import SuccessModal from '../components/SuccessModal';
 import { sendOTPEmail } from '../config/emailjs';
 
+import API_URL from '../config/api';
+
 const Login = () => {
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
@@ -84,7 +86,7 @@ const Login = () => {
         try {
             // We use the 'passwordless' login by sending just email
             // Backend trusts us because we verified the OTP
-            const res = await fetch('http://localhost:5000/api/auth/login', {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -144,14 +146,14 @@ const Login = () => {
                     }}
                 >
                     <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                        <h2 className="auth-title" style={{ 
-                            fontSize: '2rem', 
-                            marginBottom: '0.5rem', 
-                            color: 'var(--color-primary)' 
+                        <h2 className="auth-title" style={{
+                            fontSize: '2rem',
+                            marginBottom: '0.5rem',
+                            color: 'var(--color-primary)'
                         }}>
                             {isOtpSent ? 'Verify OTP' : 'Login'}
                         </h2>
-                        <p className="auth-subtitle" style={{ 
+                        <p className="auth-subtitle" style={{
                             color: 'var(--color-text-light)',
                             fontSize: '1rem'
                         }}>
@@ -184,10 +186,10 @@ const Login = () => {
                     {!isOtpSent ? (
                         <form onSubmit={handleSendOtp}>
                             <div style={{ marginBottom: '2rem' }}>
-                                <label className="auth-label" style={{ 
-                                    display: 'block', 
-                                    marginBottom: '0.5rem', 
-                                    fontWeight: 500, 
+                                <label className="auth-label" style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 500,
                                     color: 'var(--color-text)',
                                     fontSize: '1rem'
                                 }}>Email</label>
@@ -218,10 +220,10 @@ const Login = () => {
                     ) : (
                         <form onSubmit={handleVerifyParams}>
                             <div style={{ marginBottom: '2rem' }}>
-                                <label className="auth-label" style={{ 
-                                    display: 'block', 
-                                    marginBottom: '0.5rem', 
-                                    fontWeight: 500, 
+                                <label className="auth-label" style={{
+                                    display: 'block',
+                                    marginBottom: '0.5rem',
+                                    fontWeight: 500,
                                     color: 'var(--color-text)',
                                     fontSize: '1rem'
                                 }}>Enter OTP</label>

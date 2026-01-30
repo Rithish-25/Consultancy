@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import { sendOTPEmail } from '../config/emailjs';
 
+import API_URL from '../config/api';
+
 const Signup = () => {
     const [formData, setFormData] = useState({ name: '', email: '' });
     const [error, setError] = useState('');
@@ -29,7 +31,7 @@ const Signup = () => {
 
         try {
             // 1. Register User in Backend
-            const res = await fetch('http://localhost:5000/api/auth/register', {
+            const res = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -47,7 +49,7 @@ const Signup = () => {
 
             // 2. Generate and Send OTP
             const otp = generateOtp();
-            
+
             // Send OTP via EmailJS
             await sendOTPEmail(formData.email, formData.name, otp);
 
