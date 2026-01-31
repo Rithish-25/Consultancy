@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const { cartCount } = useCart();
     const isLoggedIn = !!localStorage.getItem('token');
     const isAdmin = localStorage.getItem('userRole') === 'admin';
     const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -56,7 +58,8 @@ const Navbar = () => {
     // Pages with dark hero backgrounds should have white navbar text
     const pagesWithDarkHero = ['/', '/about', '/collections', '/admin/add-product'];
     const isProductDetailsPage = location.pathname.startsWith('/collections/') && location.pathname !== '/collections';
-    const shouldUseWhiteText = !isScrolled && (pagesWithDarkHero.includes(location.pathname) || isProductDetailsPage);
+    const isAdminEditPage = location.pathname.startsWith('/admin/edit-product');
+    const shouldUseWhiteText = !isScrolled && (pagesWithDarkHero.includes(location.pathname) || isProductDetailsPage || isAdminEditPage);
 
     const linkStyle = {
         color: shouldUseWhiteText ? 'var(--color-white)' : 'var(--color-text)',
@@ -120,6 +123,32 @@ const Navbar = () => {
                                     Add Product
                                 </Link>
                             )}
+                            <Link to="/cart" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                                {cartCount > 0 && (
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: '-8px',
+                                        right: '-10px',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        width: '18px',
+                                        height: '18px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </Link>
                             <span onClick={handleLogout} style={linkStyle}>Logout</span>
                         </>
                     ) : (
@@ -381,6 +410,40 @@ const Navbar = () => {
                                             Add Product
                                         </Link>
                                     )}
+                                    <Link
+                                        to="/cart"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        style={{
+                                            color: 'var(--color-white)',
+                                            fontWeight: 500,
+                                            fontSize: '1rem',
+                                            padding: '0.75rem 0',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                            textDecoration: 'none',
+                                            transition: 'color 0.2s, transform 0.2s',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between'
+                                        }}
+                                    >
+                                        Cart
+                                        {cartCount > 0 && (
+                                            <span style={{
+                                                background: '#ef4444',
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                width: '20px',
+                                                height: '20px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Link>
                                     <span
                                         onClick={() => {
                                             handleLogout();

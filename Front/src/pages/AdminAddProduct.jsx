@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import API_URL from '../config/api';
 
 const AdminAddProduct = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const isEditMode = !!id;
 
     const [formData, setFormData] = useState({
         name: '',
         category: '',
         price: '',
+        stock: '',
         description: '',
         image: '',
         features: '', // Comma separated
@@ -27,6 +32,36 @@ const AdminAddProduct = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    useEffect(() => {
+        if (isEditMode) {
+            const fetchProduct = async () => {
+                try {
+                    const res = await fetch(`${API_URL}/products/${id}`);
+                    const data = await res.json();
+                    setFormData({
+                        name: data.name || '',
+                        category: data.category || '',
+                        price: data.price || '',
+                        stock: data.stock || 0,
+                        description: data.description || '',
+                        image: data.image || '',
+                        features: data.features ? data.features.join(', ') : '',
+                        fullDescription: data.fullDescription || '',
+                        sizes: data.sizes ? data.sizes.join(', ') : '',
+                        colors: data.colors ? data.colors.join(', ') : '',
+                        careInstructions: data.careInstructions || '',
+                        material: data.material || '',
+                        origin: data.origin || ''
+                    });
+                } catch (err) {
+                    console.error("Error fetching product:", err);
+                    setMsg('Error loading product details.');
+                }
+            };
+            fetchProduct();
+        }
+    }, [id, isEditMode]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -41,8 +76,11 @@ const AdminAddProduct = () => {
         };
 
         try {
-            const res = await fetch(`${API_URL}/products`, {
-                method: 'POST',
+            const method = isEditMode ? 'PUT' : 'POST';
+            const url = isEditMode ? `${API_URL}/products/${id}` : `${API_URL}/products`;
+
+            const res = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'x-auth-role': 'admin' // Simple role check as per requirement
@@ -51,24 +89,30 @@ const AdminAddProduct = () => {
             });
 
             if (res.ok) {
-                setMsg('Product added successfully!');
-                setFormData({
-                    name: '',
-                    category: '',
-                    price: '',
-                    description: '',
-                    image: '',
-                    features: '',
-                    fullDescription: '',
-                    sizes: '',
-                    colors: '',
-                    careInstructions: '',
-                    material: '',
-                    origin: ''
-                });
-                // Optional: navigate to collections after delay
+                setMsg(isEditMode ? 'Product updated successfully!' : 'Product added successfully!');
+                if (!isEditMode) {
+                    setFormData({
+                        name: '',
+                        category: '',
+                        price: '',
+                        stock: '',
+                        description: '',
+                        description: '',
+                        image: '',
+                        features: '',
+                        fullDescription: '',
+                        sizes: '',
+                        colors: '',
+                        careInstructions: '',
+                        material: '',
+                        origin: ''
+                    });
+                    // Optional: navigate to collections after delay
+                }
             } else {
-                setMsg('Error adding product.');
+                const errorData = await res.json().catch(() => ({}));
+                setMsg(`Error: ${errorData.msg || res.statusText || 'Failed to update'}`);
+                console.error('Operation failed:', errorData);
             }
         } catch (err) {
             console.error(err);
@@ -112,7 +156,7 @@ const AdminAddProduct = () => {
                         transition={{ duration: 0.6 }}
                     >
                         <h1 style={{ marginBottom: '2rem', color: '#fff', textAlign: 'center', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                            Admin: Add New Product
+                            {isEditMode ? 'Admin: Edit Product' : 'Admin: Add New Product'}
                         </h1>
 
                         {msg && <div style={{
@@ -144,10 +188,14 @@ const AdminAddProduct = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Price (e.g. ₹999)</label>
                                     <input required name="price" value={formData.price} onChange={handleChange} className="admin-input" />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Stock Qty</label>
+                                    <input required name="stock" type="number" min="0" value={formData.stock} onChange={handleChange} className="admin-input" placeholder="e.g. 10" />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Image URL</label>
@@ -205,7 +253,7 @@ const AdminAddProduct = () => {
                                 disabled={loading}
                                 style={{ marginTop: '1rem', width: '100%' }}
                             >
-                                {loading ? 'Adding...' : 'Add Product'}
+                                {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Product' : 'Add Product')}
                             </Button>
                         </form>
                     </motion.div>

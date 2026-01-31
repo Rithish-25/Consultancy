@@ -13,6 +13,10 @@ const productSchema = new mongoose.Schema({
         type: String, // Keeping as string to match frontend '₹299' format for now, or could change to Number
         required: true
     },
+    stock: {
+        type: Number,
+        default: 0
+    },
     description: {
         type: String,
         required: true

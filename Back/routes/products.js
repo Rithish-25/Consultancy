@@ -77,4 +77,24 @@ router.post('/', adminAuth, async (req, res) => {
     }
 });
 
+// @route   PUT /api/products/:id
+// @desc    Update a product
+// @access  Admin
+router.put('/:id', adminAuth, async (req, res) => {
+    try {
+        let product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ msg: 'Product not found' });
+
+        product = await Product.findByIdAndUpdate(
+            req.params.id,
+            { $set: req.body },
+            { new: true }
+        );
+        res.json(product);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 module.exports = router;

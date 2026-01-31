@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import API_URL from '../config/api';
@@ -9,6 +10,10 @@ const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const { addToCart } = useCart();
+    const [isAdded, setIsAdded] = useState(false);
 
     useEffect(() => {
         // Scroll to top when ProductDetails component mounts
@@ -22,14 +27,25 @@ const ProductDetails = () => {
                 }
                 const data = await res.json();
                 setProduct(data);
+                setLoading(false);
             } catch (err) {
                 console.error('Error fetching product:', err);
+                setError('Failed to load product.');
+                setLoading(false);
                 navigate('/collections');
             }
         };
 
         fetchProduct();
-    }, [id, navigate]);
+    }, [id]);
+
+    const handleAddToCart = () => {
+        if (product && (product.stock === undefined || product.stock > 0)) {
+            addToCart(product);
+            setIsAdded(true);
+            setTimeout(() => setIsAdded(false), 2000);
+        }
+    };
 
     const handleImageError = (e) => {
         e.target.style.display = 'none';
@@ -80,7 +96,27 @@ const ProductDetails = () => {
                     color: 'white',
                     textAlign: 'center'
                 }}>
-                    <div className="container">
+                    <div className="container" style={{ position: 'relative' }}>
+                        {localStorage.getItem('userRole') === 'admin' && (
+                            <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                                <Link
+                                    to={`/admin/edit-product/${product._id}`}
+                                    style={{
+                                        display: 'inline-block',
+                                        padding: '0.5rem 1.5rem',
+                                        background: 'rgba(255,255,255,0.2)',
+                                        color: 'white',
+                                        borderRadius: '0.5rem',
+                                        textDecoration: 'none',
+                                        fontWeight: 600,
+                                        border: '1px solid rgba(255,255,255,0.4)',
+                                        backdropFilter: 'blur(4px)'
+                                    }}
+                                >
+                                    ✏️ Edit Product
+                                </Link>
+                            </div>
+                        )}
                         <motion.h1
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -348,18 +384,31 @@ const ProductDetails = () => {
                                         marginTop: '2rem',
                                         flexWrap: 'wrap'
                                     }}>
+                                        <div style={{ width: '100%', marginBottom: '0.5rem' }}>
+                                            {product.stock === 0 ? (
+                                                <span style={{ color: '#ef4444', fontWeight: 600, fontSize: '1.1rem' }}>Out of Stock</span>
+                                            ) : (
+                                                <span style={{ color: '#16a34a', fontWeight: 600, fontSize: '1.1rem' }}>
+                                                    In Stock {product.stock > 0 ? `(${product.stock} available)` : ''}
+                                                </span>
+                                            )}
+                                        </div>
                                         <Button
                                             variant="primary"
+                                            onClick={handleAddToCart}
+                                            disabled={product.stock === 0}
                                             style={{
                                                 flex: 1,
                                                 padding: '1rem 2rem',
                                                 fontSize: '1.1rem',
                                                 fontWeight: 600,
                                                 whiteSpace: 'nowrap',
-                                                minWidth: 'fit-content'
+                                                minWidth: 'fit-content',
+                                                opacity: product.stock === 0 ? 0.5 : 1,
+                                                cursor: product.stock === 0 ? 'not-allowed' : 'pointer'
                                             }}
                                         >
-                                            Add to Cart
+                                            {product.stock === 0 ? 'Out of Stock' : (isAdded ? 'Added to Cart!' : 'Add to Cart')}
                                         </Button>
                                         <Button
                                             variant="outline"
