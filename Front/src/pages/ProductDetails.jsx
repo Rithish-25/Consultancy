@@ -14,6 +14,7 @@ const ProductDetails = () => {
     const [error, setError] = useState('');
     const { addToCart } = useCart();
     const [isAdded, setIsAdded] = useState(false);
+    const isAdmin = localStorage.getItem('userRole') === 'admin';
 
     useEffect(() => {
         // Scroll to top when ProductDetails component mounts
@@ -97,8 +98,8 @@ const ProductDetails = () => {
                     textAlign: 'center'
                 }}>
                     <div className="container" style={{ position: 'relative' }}>
-                        {localStorage.getItem('userRole') === 'admin' && (
-                            <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                        {isAdmin && (
+                            <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                                 <Link
                                     to={`/admin/edit-product/${product._id}`}
                                     style={{
@@ -393,23 +394,25 @@ const ProductDetails = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        <Button
-                                            variant="primary"
-                                            onClick={handleAddToCart}
-                                            disabled={product.stock === 0}
-                                            style={{
-                                                flex: 1,
-                                                padding: '1rem 2rem',
-                                                fontSize: '1.1rem',
-                                                fontWeight: 600,
-                                                whiteSpace: 'nowrap',
-                                                minWidth: 'fit-content',
-                                                opacity: product.stock === 0 ? 0.5 : 1,
-                                                cursor: product.stock === 0 ? 'not-allowed' : 'pointer'
-                                            }}
-                                        >
-                                            {product.stock === 0 ? 'Out of Stock' : (isAdded ? 'Added to Cart!' : 'Add to Cart')}
-                                        </Button>
+                                        {!isAdmin && (
+                                            <Button
+                                                variant="primary"
+                                                onClick={handleAddToCart}
+                                                disabled={product.stock === 0}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '1rem 2rem',
+                                                    fontSize: '1.1rem',
+                                                    fontWeight: 600,
+                                                    whiteSpace: 'nowrap',
+                                                    minWidth: 'fit-content',
+                                                    opacity: product.stock === 0 ? 0.5 : 1,
+                                                    cursor: product.stock === 0 ? 'not-allowed' : 'pointer'
+                                                }}
+                                            >
+                                                {product.stock === 0 ? 'Out of Stock' : (isAdded ? 'Added to Cart!' : 'Add to Cart')}
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="outline"
                                             onClick={() => navigate('/collections')}
