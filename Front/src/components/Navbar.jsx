@@ -104,18 +104,12 @@ const Navbar = () => {
                             <Link
                                 to="/collections"
                                 style={linkStyle}
-                                onClick={() => {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
                             >
                                 Collections
                             </Link>
                             <Link
                                 to="/about"
                                 style={linkStyle}
-                                onClick={() => {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
                             >
                                 About
                             </Link>
@@ -311,10 +305,7 @@ const Navbar = () => {
                                     </Link>
                                     <Link
                                         to="/collections"
-                                        onClick={() => {
-                                            setIsMobileMenuOpen(false);
-                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                        }}
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         style={{
                                             color: 'var(--color-white)',
                                             fontWeight: 500,
@@ -337,10 +328,7 @@ const Navbar = () => {
                                     </Link>
                                     <Link
                                         to="/about"
-                                        onClick={(e) => {
-                                            setIsMobileMenuOpen(false);
-                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                        }}
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         style={{
                                             color: 'var(--color-white)',
                                             fontWeight: 500,
