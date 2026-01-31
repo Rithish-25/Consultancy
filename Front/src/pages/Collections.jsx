@@ -59,7 +59,7 @@ const Collections = () => {
             category: "Formal Wear",
             price: "₹2700",
             description: "Luxury tuxedo for special events. Handcrafted with attention to detail and premium materials.",
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop",
+            image: "/images/tux.jpg",
             features: ["Premium Materials", "Handcrafted", "Perfect for Events"]
         },
         {
@@ -86,7 +86,7 @@ const Collections = () => {
             category: "Outerwear",
             price: "₹2000",
             description: "Warm and stylish wool coat for cold weather. Classic design with modern touches.",
-            image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&h=600&fit=crop",
+            image: "/images/wool.jpg",
             features: ["100% Wool", "Warm", "Classic Style"]
         },
         {
