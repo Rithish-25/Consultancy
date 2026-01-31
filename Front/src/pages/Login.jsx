@@ -14,6 +14,8 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [email, setEmail] = useState('');
+
+
     const [expectedOtp, setExpectedOtp] = useState('');
     const [isOtpSent, setIsOtpSent] = useState(false);
 
@@ -45,15 +47,20 @@ const Login = () => {
         setError('');
         setLoading(true);
 
-        if (!email) {
-            setError('Please enter your email.');
-            setLoading(false);
-            return;
-        }
+
+
 
         try {
             // Check if user exists first (optional, but good UX)
             // But we can just send OTP. 
+
+
+
+            if (!email) {
+                setError('Please enter your email.');
+                setLoading(false);
+                return;
+            }
 
             const newOtp = generateOtp();
             setExpectedOtp(newOtp);
@@ -213,6 +220,8 @@ const Login = () => {
                                     }}
                                 />
                             </div>
+
+
                             <Button variant="primary" style={{ width: '100%', marginBottom: '1.5rem' }}>
                                 {loading ? 'Sending OTP...' : 'Send OTP'}
                             </Button>
@@ -273,6 +282,8 @@ const Login = () => {
                         <div className="auth-link-text" style={{ textAlign: 'center', fontSize: '0.95rem' }}>
                             <span style={{ color: 'var(--color-text-light)' }}>Don't have an account? </span>
                             <Link to="/signup" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign up</Link>
+                            <br />
+                            <Link to="/admin/login" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem', marginTop: '1rem', display: 'inline-block' }}>Login as Admin</Link>
                         </div>
                     )}
                 </motion.div>

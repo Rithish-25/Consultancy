@@ -174,6 +174,8 @@ const Signup = () => {
                         <div className="auth-link-text" style={{ textAlign: 'center', fontSize: '0.95rem' }}>
                             <span style={{ color: 'var(--color-text-light)' }}>Already have an account? </span>
                             <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign in</Link>
+                            <br />
+                            <Link to="/admin/login" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem', marginTop: '1rem', display: 'inline-block' }}>Login as Admin</Link>
                         </div>
                     </form>
                 </motion.div>

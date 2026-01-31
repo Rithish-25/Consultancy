@@ -6,6 +6,8 @@ import Signup from './pages/Signup';
 import About from './pages/About';
 import Collections from './pages/Collections';
 import ProductDetails from './pages/ProductDetails';
+import AdminAddProduct from './pages/AdminAddProduct';
+import AdminLogin from './pages/AdminLogin';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 import ScrollToTop from './components/ScrollToTop';
@@ -39,6 +41,7 @@ function App() {
             </PublicRoute>
           }
         />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/about"
           element={
@@ -60,6 +63,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ProductDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/add-product"
+          element={
+            <ProtectedRoute>
+              <AdminAddProduct />
             </ProtectedRoute>
           }
         />
