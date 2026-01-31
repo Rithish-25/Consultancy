@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
+import API_URL from '../config/api';
 
 const AdminAddProduct = () => {
 
@@ -40,7 +41,7 @@ const AdminAddProduct = () => {
         };
 
         try {
-            const res = await fetch('http://localhost:5000/api/products', {
+            const res = await fetch(`${API_URL}/products`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

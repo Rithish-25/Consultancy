@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
+import API_URL from '../config/api';
 
 const Collections = () => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const Collections = () => {
         // Fetch products
         const fetchProducts = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/products');
+                const res = await fetch(`${API_URL}/products`);
                 const data = await res.json();
                 setCostumes(data);
             } catch (err) {

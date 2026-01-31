@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
+import API_URL from '../config/api';
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -15,7 +16,7 @@ const ProductDetails = () => {
 
         const fetchProduct = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/api/products/${id}`);
+                const res = await fetch(`${API_URL}/products/${id}`);
                 if (!res.ok) {
                     throw new Error('Product not found');
                 }
