@@ -79,15 +79,39 @@ const AdminAddProduct = () => {
 
     return (
         <>
+            <style>
+                {`
+                    .admin-input {
+                        width: 100%;
+                        padding: 0.75rem;
+                        border-radius: 0.5rem;
+                        border: 1px solid #e2e8f0;
+                        transition: all 0.3s ease;
+                    }
+                    .admin-input:focus {
+                        outline: none;
+                        border-color: #a0aec0;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                        transform: translateY(-2px);
+                    }
+                `}
+            </style>
             <Navbar />
-            <div style={{ padding: '6rem 2rem', minHeight: '100vh', background: 'var(--color-background)' }}>
+            <div style={{
+                padding: '6rem 2rem',
+                minHeight: '100vh',
+                background: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url("https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundAttachment: 'fixed'
+            }}>
                 <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <h1 style={{ marginBottom: '2rem', color: 'var(--color-primary)', textAlign: 'center' }}>
+                        <h1 style={{ marginBottom: '2rem', color: '#fff', textAlign: 'center', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
                             Admin: Add New Product
                         </h1>
 
@@ -112,49 +136,49 @@ const AdminAddProduct = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Name</label>
-                                    <input required name="name" value={formData.name} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input required name="name" value={formData.name} onChange={handleChange} className="admin-input" />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Category</label>
-                                    <input required name="category" value={formData.category} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input required name="category" value={formData.category} onChange={handleChange} className="admin-input" />
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Price (e.g. ₹999)</label>
-                                    <input required name="price" value={formData.price} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input required name="price" value={formData.price} onChange={handleChange} className="admin-input" />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Image URL</label>
-                                    <input required name="image" value={formData.image} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input required name="image" value={formData.image} onChange={handleChange} className="admin-input" />
                                 </div>
                             </div>
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Short Description</label>
-                                <textarea required name="description" value={formData.description} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} rows="3" />
+                                <textarea required name="description" value={formData.description} onChange={handleChange} className="admin-input" rows="3" />
                             </div>
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Full Description</label>
-                                <textarea name="fullDescription" value={formData.fullDescription} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} rows="5" />
+                                <textarea name="fullDescription" value={formData.fullDescription} onChange={handleChange} className="admin-input" rows="5" />
                             </div>
 
                             {/* Arrays */}
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Features (comma separated)</label>
-                                <input name="features" value={formData.features} onChange={handleChange} placeholder="Feature 1, Feature 2" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                <input name="features" value={formData.features} onChange={handleChange} placeholder="Feature 1, Feature 2" className="admin-input" />
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Sizes (comma separated)</label>
-                                    <input name="sizes" value={formData.sizes} onChange={handleChange} placeholder="S, M, L" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input name="sizes" value={formData.sizes} onChange={handleChange} placeholder="S, M, L" className="admin-input" />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Colors (comma separated)</label>
-                                    <input name="colors" value={formData.colors} onChange={handleChange} placeholder="Red, Blue" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input name="colors" value={formData.colors} onChange={handleChange} placeholder="Red, Blue" className="admin-input" />
                                 </div>
                             </div>
 
@@ -162,17 +186,17 @@ const AdminAddProduct = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Material</label>
-                                    <input name="material" value={formData.material} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input name="material" value={formData.material} onChange={handleChange} className="admin-input" />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Origin</label>
-                                    <input name="origin" value={formData.origin} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                    <input name="origin" value={formData.origin} onChange={handleChange} className="admin-input" />
                                 </div>
                             </div>
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Care Instructions</label>
-                                <input name="careInstructions" value={formData.careInstructions} onChange={handleChange} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} />
+                                <input name="careInstructions" value={formData.careInstructions} onChange={handleChange} className="admin-input" />
                             </div>
 
                             <Button
