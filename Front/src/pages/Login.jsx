@@ -116,7 +116,7 @@ const Login = () => {
 
     const handleSuccessClose = () => {
         setShowSuccess(false);
-        navigate('/');
+        navigate('/', { replace: true });
     };
 
     return (

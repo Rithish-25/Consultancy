@@ -35,7 +35,7 @@ const AdminLogin = () => {
 
     const handleSuccessClose = () => {
         setShowSuccess(false);
-        navigate('/admin/add-product');
+        navigate('/admin/add-product', { replace: true });
     };
 
     return (
