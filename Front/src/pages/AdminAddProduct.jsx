@@ -184,7 +184,12 @@ const AdminAddProduct = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Category</label>
-                                    <input required name="category" value={formData.category} onChange={handleChange} className="admin-input" />
+                                    <select required name="category" value={formData.category} onChange={handleChange} className="admin-input">
+                                        <option value="">Select Category</option>
+                                        <option value="Men">Men</option>
+                                        <option value="Women">Women</option>
+                                        <option value="Kids">Kids</option>
+                                    </select>
                                 </div>
                             </div>
 

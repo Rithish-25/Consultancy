@@ -31,11 +31,20 @@ const adminAuth = (req, res, next) => {
 };
 
 // @route   GET /api/products
-// @desc    Get all products
+// @desc    Get all products or filter by category
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.find();
+        const { category } = req.query;
+        let query = {};
+
+        if (category) {
+            console.log(`Filtering products by category: ${category}`);
+            // Case-insensitive exact match
+            query.category = { $regex: new RegExp(`^${category}$`, 'i') };
+        }
+
+        const products = await Product.find(query);
         res.json(products);
     } catch (err) {
         console.error(err.message);

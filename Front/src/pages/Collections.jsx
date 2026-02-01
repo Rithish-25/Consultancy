@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import API_URL from '../config/api';
@@ -15,16 +15,24 @@ const Collections = () => {
     };
 
     const [costumes, setCostumes] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
-        // Fetch products
-        const fetchProducts = async () => {
+    const handleCategoryChange = async (e) => {
+        const category = e.target.value;
+        setSelectedCategory(category);
+        setCostumes([]);
+
+        if (category) {
+            setLoading(true);
             try {
-                const res = await fetch(`${API_URL}/products`);
+                const res = await fetch(`${API_URL}/products?category=${category}`);
                 const data = await res.json();
                 setCostumes(data);
             } catch (err) {
@@ -32,10 +40,8 @@ const Collections = () => {
             } finally {
                 setLoading(false);
             }
-        };
-
-        fetchProducts();
-    }, []);
+        }
+    };
 
     const handleImageError = (e) => {
         // Fallback to a colored placeholder if image fails to load
@@ -129,14 +135,110 @@ const Collections = () => {
                                 fontFamily: "'Playfair Display', serif",
                                 color: 'var(--color-primary)'
                             }}>
-                                Premium Costumes
+                                {selectedCategory ? `${selectedCategory}'s Collection` : 'Select a Category'}
                             </h2>
                             <p style={{
                                 color: 'var(--color-text-light)',
-                                fontSize: '1.125rem'
+                                fontSize: '1.125rem',
+                                marginBottom: '2rem'
                             }}>
-                                Handpicked selection of the finest apparel
+                                {selectedCategory ? 'Handpicked selection of the finest apparel' : 'Please select a category to view our exclusive collection'}
                             </p>
+
+                            <div style={{ marginBottom: '2rem', position: 'relative', display: 'inline-block', zIndex: 50 }}>
+                                <div
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    style={{
+                                        width: '280px',
+                                        padding: '1rem 1.5rem',
+                                        fontSize: '1.1rem',
+                                        fontFamily: "'Playfair Display', serif",
+                                        borderRadius: '50px',
+                                        border: `2px solid ${isDropdownOpen ? '#a0aec0' : '#e2e8f0'}`,
+                                        backgroundColor: 'white',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                        color: '#1a202c',
+                                        fontWeight: '600',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    <span>{selectedCategory ? `${selectedCategory}'s Collection` : '✨ Select Collection'}</span>
+                                    <motion.div
+                                        animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        style={{ color: '#718096' }}
+                                    >
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </motion.div>
+                                </div>
+
+                                <AnimatePresence>
+                                    {isDropdownOpen && (
+                                        <>
+                                            <div
+                                                style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+                                                onClick={() => setIsDropdownOpen(false)}
+                                            />
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '120%',
+                                                    left: 0,
+                                                    width: '100%',
+                                                    backgroundColor: 'white',
+                                                    borderRadius: '1.5rem',
+                                                    padding: '0.5rem',
+                                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                                    border: '1px solid #e2e8f0',
+                                                    zIndex: 50,
+                                                    overflow: 'hidden'
+                                                }}
+                                            >
+                                                {['Men', 'Women', 'Kids'].map((item) => (
+                                                    <div
+                                                        key={item}
+                                                        onClick={() => {
+                                                            handleCategoryChange({ target: { value: item } });
+                                                            setIsDropdownOpen(false);
+                                                        }}
+                                                        style={{
+                                                            padding: '0.75rem 1.5rem',
+                                                            cursor: 'pointer',
+                                                            borderRadius: '1rem',
+                                                            transition: 'all 0.2s',
+                                                            color: selectedCategory === item ? 'white' : '#4a5568',
+                                                            backgroundColor: selectedCategory === item ? 'var(--color-primary)' : 'transparent',
+                                                            fontWeight: selectedCategory === item ? '600' : '500',
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (selectedCategory !== item) e.target.style.backgroundColor = '#f7fafc';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (selectedCategory !== item) e.target.style.backgroundColor = 'transparent';
+                                                        }}
+                                                    >
+                                                        {item}'s Collection
+                                                        {selectedCategory === item && <span>✓</span>}
+                                                    </div>
+                                                ))}
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </motion.div>
 
                         <div style={{
@@ -146,151 +248,157 @@ const Collections = () => {
                             maxWidth: '1400px',
                             margin: '0 auto'
                         }}>
-                            {loading ? <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>Loading products...</p> : costumes.length === 0 ? <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>No products found. Admin can add products.</p> : costumes.map((costume, index) => (
-                                <motion.div
-                                    key={costume._id}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                                    whileHover={{ y: -10, scale: 1.02 }}
-                                    onClick={() => handleProductClick(costume._id)}
-                                    style={{
-                                        background: 'white',
-                                        borderRadius: '1rem',
-                                        overflow: 'hidden',
-                                        boxShadow: 'var(--shadow-lg)',
-                                        transition: 'all 0.3s ease',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {/* Image */}
-                                    <div style={{
-                                        width: '100%',
-                                        height: '300px',
-                                        overflow: 'hidden',
-                                        position: 'relative',
-                                        backgroundColor: '#e2e8f0'
-                                    }}>
-                                        <img
-                                            src={costume.image}
-                                            alt={costume.name}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover',
-                                                transition: 'transform 0.3s ease, opacity 0.3s ease',
-                                                display: 'block',
-                                                backgroundColor: '#e2e8f0'
-                                            }}
-                                            onError={(e) => {
-                                                console.error('Image failed to load:', costume.name, costume.image);
-                                                handleImageError(e);
-                                            }}
-                                            onLoad={(e) => {
-                                                e.target.style.opacity = '1';
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (e.target.complete && e.target.naturalHeight !== 0) {
-                                                    e.target.style.transform = 'scale(1.1)';
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.target.style.transform = 'scale(1)';
-                                            }}
-                                        />
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: '1rem',
-                                            right: '1rem',
-                                            background: 'rgba(255, 255, 255, 0.9)',
-                                            padding: '0.5rem 1rem',
-                                            borderRadius: '9999px',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 600,
-                                            color: 'var(--color-primary)'
-                                        }}>
-                                            {costume.category}
-                                        </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div style={{ padding: '1.5rem' }}>
-                                        <h3 style={{
-                                            fontSize: '1.5rem',
-                                            marginBottom: '0.5rem',
-                                            fontFamily: "'Playfair Display', serif",
-                                            color: 'var(--color-primary)'
-                                        }}>
-                                            {costume.name}
-                                        </h3>
-                                        <p style={{
-                                            color: 'var(--color-text-light)',
-                                            fontSize: '0.95rem',
-                                            lineHeight: '1.6',
-                                            marginBottom: '1rem',
-                                            minHeight: '3rem'
-                                        }}>
-                                            {costume.description}
-                                        </p>
-
-                                        {/* Features */}
-                                        <div style={{
-                                            display: 'flex',
-                                            flexWrap: 'wrap',
-                                            gap: '0.5rem',
-                                            marginBottom: '1rem'
-                                        }}>
-                                            {costume.features.map((feature, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    style={{
-                                                        background: 'var(--color-background)',
-                                                        padding: '0.25rem 0.75rem',
-                                                        borderRadius: '9999px',
-                                                        fontSize: '0.75rem',
-                                                        color: 'var(--color-text)',
-                                                        fontWeight: 500
-                                                    }}
-                                                >
-                                                    {feature}
-                                                </span>
-                                            ))}
-                                        </div>
-
-                                        {/* Price and Button */}
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            marginTop: '1rem',
-                                            paddingTop: '1rem',
-                                            borderTop: '1px solid #e2e8f0'
-                                        }}>
-                                            <span style={{
-                                                fontSize: '1.5rem',
-                                                fontWeight: 700,
-                                                color: 'var(--color-primary)'
-                                            }}>
-                                                {costume.price}
-                                            </span>
-                                            <Button
-                                                variant="primary"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleProductClick(costume._id);
-                                                }}
+                            {loading ?
+                                <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>Loading products...</p> :
+                                !selectedCategory ?
+                                    <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1', opacity: 0 }}></p> :
+                                    costumes.length === 0 ?
+                                        <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>No products found in this category.</p> :
+                                        costumes.map((costume, index) => (
+                                            <motion.div
+                                                key={costume._id}
+                                                initial={{ opacity: 0, y: 30 }}
+                                                whileInView={{ opacity: 1, y: 0 }}
+                                                viewport={{ once: true }}
+                                                transition={{ duration: 0.6, delay: index * 0.1 }}
+                                                whileHover={{ y: -10, scale: 1.02 }}
+                                                onClick={() => handleProductClick(costume._id)}
                                                 style={{
-                                                    padding: '0.5rem 1.5rem',
-                                                    fontSize: '0.9rem'
+                                                    background: 'white',
+                                                    borderRadius: '1rem',
+                                                    overflow: 'hidden',
+                                                    boxShadow: 'var(--shadow-lg)',
+                                                    transition: 'all 0.3s ease',
+                                                    cursor: 'pointer'
                                                 }}
                                             >
-                                                View Details
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                                {/* Image */}
+                                                <div style={{
+                                                    width: '100%',
+                                                    height: '300px',
+                                                    overflow: 'hidden',
+                                                    position: 'relative',
+                                                    backgroundColor: '#e2e8f0'
+                                                }}>
+                                                    <img
+                                                        src={costume.image}
+                                                        alt={costume.name}
+                                                        style={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            objectFit: 'cover',
+                                                            transition: 'transform 0.3s ease, opacity 0.3s ease',
+                                                            display: 'block',
+                                                            backgroundColor: '#e2e8f0'
+                                                        }}
+                                                        onError={(e) => {
+                                                            console.error('Image failed to load:', costume.name, costume.image);
+                                                            handleImageError(e);
+                                                        }}
+                                                        onLoad={(e) => {
+                                                            e.target.style.opacity = '1';
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (e.target.complete && e.target.naturalHeight !== 0) {
+                                                                e.target.style.transform = 'scale(1.1)';
+                                                            }
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.target.style.transform = 'scale(1)';
+                                                        }}
+                                                    />
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '1rem',
+                                                        right: '1rem',
+                                                        background: 'rgba(255, 255, 255, 0.9)',
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '9999px',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 600,
+                                                        color: 'var(--color-primary)'
+                                                    }}>
+                                                        {costume.category}
+                                                    </div>
+                                                </div>
+
+                                                {/* Content */}
+                                                <div style={{ padding: '1.5rem' }}>
+                                                    <h3 style={{
+                                                        fontSize: '1.5rem',
+                                                        marginBottom: '0.5rem',
+                                                        fontFamily: "'Playfair Display', serif",
+                                                        color: 'var(--color-primary)'
+                                                    }}>
+                                                        {costume.name}
+                                                    </h3>
+                                                    <p style={{
+                                                        color: 'var(--color-text-light)',
+                                                        fontSize: '0.95rem',
+                                                        lineHeight: '1.6',
+                                                        marginBottom: '1rem',
+                                                        minHeight: '3rem'
+                                                    }}>
+                                                        {costume.description}
+                                                    </p>
+
+                                                    {/* Features */}
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        flexWrap: 'wrap',
+                                                        gap: '0.5rem',
+                                                        marginBottom: '1rem'
+                                                    }}>
+                                                        {costume.features.map((feature, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                style={{
+                                                                    background: 'var(--color-background)',
+                                                                    padding: '0.25rem 0.75rem',
+                                                                    borderRadius: '9999px',
+                                                                    fontSize: '0.75rem',
+                                                                    color: 'var(--color-text)',
+                                                                    fontWeight: 500
+                                                                }}
+                                                            >
+                                                                {feature}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Price and Button */}
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        marginTop: '1rem',
+                                                        paddingTop: '1rem',
+                                                        borderTop: '1px solid #e2e8f0'
+                                                    }}>
+                                                        <span style={{
+                                                            fontSize: '1.5rem',
+                                                            fontWeight: 700,
+                                                            color: 'var(--color-primary)'
+                                                        }}>
+                                                            {costume.price}
+                                                        </span>
+                                                        <Button
+                                                            variant="primary"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleProductClick(costume._id);
+                                                            }}
+                                                            style={{
+                                                                padding: '0.5rem 1.5rem',
+                                                                fontSize: '0.9rem'
+                                                            }}
+                                                        >
+                                                            View Details
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
                         </div>
                     </div>
                 </section>
