@@ -119,9 +119,12 @@ const Navbar = () => {
                                 About
                             </Link>
                             {isAdmin && (
-                                <Link to="/admin/add-product" style={linkStyle}>
-                                    Add Product
-                                </Link>
+                                <>
+                                    <Link to="/admin/add-product" style={linkStyle}>
+                                        Add Product
+                                    </Link>
+
+                                </>
                             )}
                             {!isAdmin && (
                                 <Link to="/cart" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
@@ -388,29 +391,32 @@ const Navbar = () => {
                                         About
                                     </Link>
                                     {isAdmin && (
-                                        <Link
-                                            to="/admin/add-product"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            style={{
-                                                color: 'var(--color-white)',
-                                                fontWeight: 500,
-                                                fontSize: '1rem',
-                                                padding: '0.75rem 0',
-                                                borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                                textDecoration: 'none',
-                                                transition: 'color 0.2s, transform 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.target.style.color = 'var(--color-secondary)';
-                                                e.target.style.transform = 'translateX(5px)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.target.style.color = 'var(--color-white)';
-                                                e.target.style.transform = 'translateX(0)';
-                                            }}
-                                        >
-                                            Add Product
-                                        </Link>
+                                        <>
+                                            <Link
+                                                to="/admin/add-product"
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                style={{
+                                                    color: 'var(--color-white)',
+                                                    fontWeight: 500,
+                                                    fontSize: '1rem',
+                                                    padding: '0.75rem 0',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                                    textDecoration: 'none',
+                                                    transition: 'color 0.2s, transform 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.target.style.color = 'var(--color-secondary)';
+                                                    e.target.style.transform = 'translateX(5px)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.target.style.color = 'var(--color-white)';
+                                                    e.target.style.transform = 'translateX(0)';
+                                                }}
+                                            >
+                                                Add Product
+                                            </Link>
+
+                                        </>
                                     )}
                                     {!isAdmin && (
                                         <Link

@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import SuccessModal from '../components/SuccessModal';
+import API_URL from '../config/api';
 
 const AdminLogin = () => {
     const [email, setEmail] = useState('');
@@ -19,13 +20,31 @@ const AdminLogin = () => {
         setError('');
         setLoading(true);
 
-        // Simple Admin Credentials Check
+        // Simple Admin Credentials Check (Frontend)
         if (email === 'admin@gmail.com' && password === 'admin@fashion') {
-            // Success
-            localStorage.setItem('token', 'admin-token'); // Mock admin token
-            localStorage.setItem('userRole', 'admin');
-            setShowSuccess(true);
-            setLoading(false);
+            try {
+                // Perform REAL login to backend to get valid token
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }) // Backend uses passwordless email login
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.msg || 'Backend login failed');
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userRole', 'admin'); // Force admin role usage since we verified creds
+                setShowSuccess(true);
+            } catch (err) {
+                console.error(err);
+                // Fallback (should not happen if backend is up)
+                setError('Backend connection failed. Check server.');
+            } finally {
+                setLoading(false);
+            }
         } else {
             // Failure
             setLoading(false);

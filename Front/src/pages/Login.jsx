@@ -63,6 +63,7 @@ const Login = () => {
             }
 
             const newOtp = generateOtp();
+            console.log('DEBUG OTP:', newOtp); // For testing purposes
             setExpectedOtp(newOtp);
 
             // Send OTP via EmailJS
@@ -105,7 +106,7 @@ const Login = () => {
             }
 
             localStorage.setItem('token', data.token);
-            localStorage.setItem('userRole', 'user');
+            localStorage.setItem('userRole', data.user.role || 'user');
             setShowSuccess(true);
         } catch (err) {
             setError(err.message);
@@ -116,7 +117,12 @@ const Login = () => {
 
     const handleSuccessClose = () => {
         setShowSuccess(false);
-        navigate('/', { replace: true });
+        const role = localStorage.getItem('userRole');
+        if (role === 'admin') {
+            navigate('/admin/orders', { replace: true });
+        } else {
+            navigate('/', { replace: true });
+        }
     };
 
     return (
@@ -283,6 +289,7 @@ const Login = () => {
                         <div className="auth-link-text" style={{ textAlign: 'center', fontSize: '0.95rem' }}>
                             <span style={{ color: 'var(--color-text-light)' }}>Don't have an account? </span>
                             <Link to="/signup" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign up</Link>
+                            <br />
                             <br />
                             <Link to="/admin/login" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem', marginTop: '1rem', display: 'inline-block' }}>Login as Admin</Link>
                         </div>
