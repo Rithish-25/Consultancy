@@ -1,16 +1,69 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import { useCart } from '../context/CartContext';
+import API_URL from '../config/api';
+import SuccessModal from '../components/SuccessModal';
 
 const Cart = () => {
-    const { cart, removeFromCart, updateQuantity, cartCount, cartTotal } = useCart();
+    const { cart, removeFromCart, updateQuantity, cartCount, cartTotal, clearCart } = useCart();
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    const handleCheckout = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login to checkout');
+            navigate('/login');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({
+                    items: cart,
+                    totalAmount: cartTotal
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.msg || 'Checkout failed');
+            }
+
+            // Success
+            clearCart();
+            setShowSuccess(true);
+        } catch (err) {
+            console.error(err);
+            alert('Checkout failed: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSuccessClose = () => {
+        setShowSuccess(false);
+        navigate('/'); // Or navigate to orders page if it exists
+    };
 
     return (
         <>
             <Navbar />
+            <SuccessModal
+                isOpen={showSuccess}
+                message="Order placed successfully!"
+                onClose={handleSuccessClose}
+            />
             <div style={{ padding: '6rem 2rem', minHeight: '100vh', background: 'var(--color-background)' }}>
                 <div className="container" style={{ maxWidth: '1000px', margin: '0 auto' }}>
                     <motion.div
@@ -51,15 +104,20 @@ const Cart = () => {
                                             />
                                             <div style={{ flex: 1 }}>
                                                 <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.name}</h3>
-                                                <p style={{ color: 'var(--color-text-light)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                                                <p style={{ color: 'var(--color-text-light)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
                                                     {item.category}
                                                 </p>
+                                                {item.selectedSize && (
+                                                    <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                                                        <span style={{ fontWeight: 600 }}>Size:</span> {item.selectedSize}
+                                                    </p>
+                                                )}
                                                 <p style={{ fontWeight: 600 }}>{item.price}</p>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
                                                     <button
-                                                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                                                        onClick={() => updateQuantity(item._id, item.quantity - 1, item.selectedSize)}
                                                         style={{ padding: '0.5rem 1rem', background: 'none', border: 'none', cursor: 'pointer' }}
                                                     >
                                                         -
@@ -68,7 +126,7 @@ const Cart = () => {
                                                     <button
                                                         onClick={() => {
                                                             if (item.quantity < item.stock) {
-                                                                updateQuantity(item._id, item.quantity + 1);
+                                                                updateQuantity(item._id, item.quantity + 1, item.selectedSize);
                                                             } else {
                                                                 alert(`Only ${item.stock} items in stock!`);
                                                             }
@@ -86,7 +144,7 @@ const Cart = () => {
                                                     </button>
                                                 </div>
                                                 <button
-                                                    onClick={() => removeFromCart(item._id)}
+                                                    onClick={() => removeFromCart(item._id, item.selectedSize)}
                                                     style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}
                                                     aria-label="Remove item"
                                                 >
@@ -117,8 +175,8 @@ const Cart = () => {
                                         <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Total</span>
                                         <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--color-primary)' }}>₹{cartTotal.toLocaleString()}</span>
                                     </div>
-                                    <Button variant="primary" style={{ width: '100%' }}>
-                                        Checkout
+                                    <Button variant="primary" style={{ width: '100%' }} onClick={handleCheckout} disabled={loading}>
+                                        {loading ? 'Processing...' : 'Checkout'}
                                     </Button>
                                 </div>
                             </div>

@@ -9,6 +9,7 @@ import API_URL from '../config/api';
 const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [selectedSize, setSelectedSize] = useState(null);
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -42,11 +43,23 @@ const ProductDetails = () => {
 
     const handleAddToCart = () => {
         if (product && (product.stock === undefined || product.stock > 0)) {
-            addToCart(product);
+            // Check if product has sizes and none selected
+            if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+                alert('Please select a size');
+                return;
+            }
+
+            addToCart(product, selectedSize);
             setIsAdded(true);
             setTimeout(() => setIsAdded(false), 2000);
         }
     };
+
+    // ... (handleImageError remains the same)
+
+    // ... (Render parts)
+
+
 
     const handleImageError = (e) => {
         e.target.style.display = 'none';
@@ -276,8 +289,10 @@ const ProductDetails = () => {
                                         </div>
                                     </div>
 
+
+
                                     {/* Sizes */}
-                                    {product.sizes && (
+                                    {product.sizes && product.sizes.length > 0 && (
                                         <div style={{ marginBottom: '2rem' }}>
                                             <h3 style={{
                                                 fontSize: '1.25rem',
@@ -295,24 +310,18 @@ const ProductDetails = () => {
                                                 {product.sizes.map((size, idx) => (
                                                     <button
                                                         key={idx}
+                                                        onClick={() => setSelectedSize(size)}
                                                         style={{
                                                             padding: '0.75rem 1.5rem',
-                                                            border: '2px solid var(--color-primary)',
+                                                            border: `2px solid ${selectedSize === size ? 'var(--color-primary)' : '#e2e8f0'}`,
                                                             borderRadius: '0.5rem',
-                                                            background: 'white',
-                                                            color: 'var(--color-primary)',
+                                                            background: selectedSize === size ? 'var(--color-primary)' : 'white',
+                                                            color: selectedSize === size ? 'white' : 'var(--color-text)',
                                                             fontWeight: 600,
                                                             cursor: 'pointer',
-                                                            transition: 'all 0.3s ease',
-                                                            fontSize: '1rem'
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            e.target.style.background = 'var(--color-primary)';
-                                                            e.target.style.color = 'white';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.target.style.background = 'white';
-                                                            e.target.style.color = 'var(--color-primary)';
+                                                            transition: 'all 0.2s ease',
+                                                            fontSize: '1rem',
+                                                            minWidth: '3rem'
                                                         }}
                                                     >
                                                         {size}
