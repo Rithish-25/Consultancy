@@ -7,6 +7,7 @@ import About from './pages/About';
 import Collections from './pages/Collections';
 import ProductDetails from './pages/ProductDetails';
 import AdminAddProduct from './pages/AdminAddProduct';
+import Favorites from './pages/Favorites';
 
 import AdminLogin from './pages/AdminLogin';
 
@@ -94,6 +95,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <ProtectedRoute>
+                <Favorites />
               </ProtectedRoute>
             }
           />

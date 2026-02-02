@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [favoritesCount, setFavoritesCount] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
     const { cartCount } = useCart();
@@ -26,6 +27,33 @@ const Navbar = () => {
     }, [location]);
 
     useEffect(() => {
+        // Update favorites count from localStorage
+        const updateFavoritesCount = () => {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            setFavoritesCount(favorites.length);
+        };
+
+        updateFavoritesCount();
+        
+        // Listen for storage changes (in case favorites are updated in another tab)
+        const handleStorageChange = (e) => {
+            if (e.key === 'favorites') {
+                updateFavoritesCount();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also listen for custom events (for same-tab updates)
+        window.addEventListener('favoritesUpdated', updateFavoritesCount);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('favoritesUpdated', updateFavoritesCount);
+        };
+    }, []);
+
+    useEffect(() => {
         if (isMobileMenuOpen) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -39,6 +67,8 @@ const Navbar = () => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('userRole');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
         navigate('/signup');
     };
 
@@ -127,32 +157,58 @@ const Navbar = () => {
                                 </>
                             )}
                             {!isAdmin && (
-                                <Link to="/cart" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="9" cy="21" r="1"></circle>
-                                        <circle cx="20" cy="21" r="1"></circle>
-                                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                                    </svg>
-                                    {cartCount > 0 && (
-                                        <span style={{
-                                            position: 'absolute',
-                                            top: '-8px',
-                                            right: '-10px',
-                                            background: '#ef4444',
-                                            color: 'white',
-                                            borderRadius: '50%',
-                                            width: '18px',
-                                            height: '18px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.7rem',
-                                            fontWeight: 'bold'
-                                        }}>
-                                            {cartCount}
-                                        </span>
-                                    )}
-                                </Link>
+                                <>
+                                    <Link to="/favorites" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                        </svg>
+                                        {favoritesCount > 0 && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                top: '-8px',
+                                                right: '-10px',
+                                                background: '#ef4444',
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                width: '18px',
+                                                height: '18px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.7rem',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {favoritesCount}
+                                            </span>
+                                        )}
+                                    </Link>
+                                    <Link to="/cart" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="9" cy="21" r="1"></circle>
+                                            <circle cx="20" cy="21" r="1"></circle>
+                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                        </svg>
+                                        {cartCount > 0 && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                top: '-8px',
+                                                right: '-10px',
+                                                background: '#ef4444',
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                width: '18px',
+                                                height: '18px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.7rem',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {cartCount}
+                                            </span>
+                                        )}
+                                    </Link>
+                                </>
                             )}
                             <span onClick={handleLogout} style={linkStyle}>Logout</span>
                         </>
@@ -419,40 +475,84 @@ const Navbar = () => {
                                         </>
                                     )}
                                     {!isAdmin && (
-                                        <Link
-                                            to="/cart"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            style={{
-                                                color: 'var(--color-white)',
-                                                fontWeight: 500,
-                                                fontSize: '1rem',
-                                                padding: '0.75rem 0',
-                                                borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                                                textDecoration: 'none',
-                                                transition: 'color 0.2s, transform 0.2s',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between'
-                                            }}
-                                        >
-                                            Cart
-                                            {cartCount > 0 && (
-                                                <span style={{
-                                                    background: '#ef4444',
-                                                    color: 'white',
-                                                    borderRadius: '50%',
-                                                    width: '20px',
-                                                    height: '20px',
+                                        <>
+                                            <Link
+                                                to="/favorites"
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                style={{
+                                                    color: 'var(--color-white)',
+                                                    fontWeight: 500,
+                                                    fontSize: '1rem',
+                                                    padding: '0.75rem 0',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                                    textDecoration: 'none',
+                                                    transition: 'color 0.2s, transform 0.2s',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.target.style.color = 'var(--color-secondary)';
+                                                    e.target.style.transform = 'translateX(5px)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.target.style.color = 'var(--color-white)';
+                                                    e.target.style.transform = 'translateX(0)';
+                                                }}
+                                            >
+                                                Favorites
+                                                {favoritesCount > 0 && (
+                                                    <span style={{
+                                                        background: '#ef4444',
+                                                        color: 'white',
+                                                        borderRadius: '50%',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        {favoritesCount}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                            <Link
+                                                to="/cart"
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                style={{
+                                                    color: 'var(--color-white)',
+                                                    fontWeight: 500,
+                                                    fontSize: '1rem',
+                                                    padding: '0.75rem 0',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                                    textDecoration: 'none',
+                                                    transition: 'color 0.2s, transform 0.2s',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {cartCount}
-                                                </span>
-                                            )}
-                                        </Link>
+                                                    justifyContent: 'space-between'
+                                                }}
+                                            >
+                                                Cart
+                                                {cartCount > 0 && (
+                                                    <span style={{
+                                                        background: '#ef4444',
+                                                        color: 'white',
+                                                        borderRadius: '50%',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        {cartCount}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                        </>
                                     )}
                                     <span
                                         onClick={() => {

@@ -44,7 +44,7 @@ const Cart = () => {
             clearCart();
             setShowSuccess(true);
         } catch (err) {
-            console.error(err);
+            console.error('Checkout error:', err);
             alert('Checkout failed: ' + err.message);
         } finally {
             setLoading(false);

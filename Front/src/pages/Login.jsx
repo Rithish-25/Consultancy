@@ -107,6 +107,8 @@ const Login = () => {
 
             localStorage.setItem('token', data.token);
             localStorage.setItem('userRole', data.user.role || 'user');
+            localStorage.setItem('userId', data.user.id);
+            localStorage.setItem('userEmail', data.user.email);
             setShowSuccess(true);
         } catch (err) {
             setError(err.message);

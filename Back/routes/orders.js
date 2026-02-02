@@ -31,7 +31,7 @@ router.post('/', auth, async (req, res) => {
         const order = await newOrder.save();
         res.json(order);
     } catch (err) {
-        console.error(err.message);
+        console.error('Error creating order:', err.message);
         res.status(500).send('Server error');
     }
 });
@@ -62,6 +62,22 @@ router.get('/', auth, async (req, res) => {
         res.json(orders);
     } catch (err) {
         console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @desc    Get current user's orders
+// @route   GET /api/orders/user
+// @access  Private
+router.get('/user', auth, async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate('items.product', 'name image category');
+        
+        res.json(orders);
+    } catch (err) {
+        console.error('Error fetching user orders:', err.message);
         res.status(500).send('Server error');
     }
 });

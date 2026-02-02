@@ -8,8 +8,6 @@ import API_URL from '../config/api';
 const Collections = () => {
     const navigate = useNavigate();
 
-
-
     const handleProductClick = (productId) => {
         navigate(`/collections/${productId}`);
     };
@@ -18,16 +16,21 @@ const Collections = () => {
     const [loading, setLoading] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCostumes, setFilteredCostumes] = useState([]);
+    const [favorites, setFavorites] = useState([]);
 
     useEffect(() => {
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Load favorites from localStorage on component mount
+        const storedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        setFavorites(storedFavorites);
     }, []);
 
     const handleCategoryChange = async (e) => {
         const category = e.target.value;
         setSelectedCategory(category);
         setCostumes([]);
+        setFilteredCostumes([]);
 
         if (category) {
             setLoading(true);
@@ -35,12 +38,45 @@ const Collections = () => {
                 const res = await fetch(`${API_URL}/products?category=${category}`);
                 const data = await res.json();
                 setCostumes(data);
+                setFilteredCostumes(data);
             } catch (err) {
                 console.error('Error fetching products:', err);
             } finally {
                 setLoading(false);
             }
         }
+    };
+
+    const handleSearch = (e) => {
+        const searchValue = e.target.value;
+        setSearchTerm(searchValue);
+        
+        if (searchValue.trim() === '') {
+            setFilteredCostumes(costumes);
+        } else {
+            const filtered = costumes.filter(costume => 
+                costume.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+                costume.description.toLowerCase().includes(searchValue.toLowerCase()) ||
+                costume.features.some(feature => feature.toLowerCase().includes(searchValue.toLowerCase()))
+            );
+            setFilteredCostumes(filtered);
+        }
+    };
+
+    const toggleFavorite = (productId) => {
+        setFavorites(prev => {
+            const newFavorites = prev.includes(productId) 
+                ? prev.filter(id => id !== productId)
+                : [...prev, productId];
+            
+            // Save to localStorage
+            localStorage.setItem('favorites', JSON.stringify(newFavorites));
+            
+            // Dispatch custom event to notify other components
+            window.dispatchEvent(new CustomEvent('favoritesUpdated'));
+            
+            return newFavorites;
+        });
     };
 
     const handleImageError = (e) => {
@@ -145,99 +181,138 @@ const Collections = () => {
                                 {selectedCategory ? 'Handpicked selection of the finest apparel' : 'Please select a category to view our exclusive collection'}
                             </p>
 
-                            <div style={{ marginBottom: '2rem', position: 'relative', display: 'inline-block', zIndex: 50 }}>
-                                <div
-                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    style={{
-                                        width: '280px',
-                                        padding: '1rem 1.5rem',
-                                        fontSize: '1.1rem',
-                                        fontFamily: "'Playfair Display', serif",
-                                        borderRadius: '50px',
-                                        border: `2px solid ${isDropdownOpen ? '#a0aec0' : '#e2e8f0'}`,
-                                        backgroundColor: 'white',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                                        color: '#1a202c',
-                                        fontWeight: '600',
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                >
-                                    <span>{selectedCategory ? `${selectedCategory}'s Collection` : '✨ Select Collection'}</span>
-                                    <motion.div
-                                        animate={{ rotate: isDropdownOpen ? 180 : 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        style={{ color: '#718096' }}
+                            <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                <div style={{ position: 'relative', display: 'inline-block', zIndex: 50 }}>
+                                    <div
+                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        style={{
+                                            width: '280px',
+                                            padding: '1rem 1.5rem',
+                                            fontSize: '1.1rem',
+                                            fontFamily: "'Playfair Display', serif",
+                                            borderRadius: '50px',
+                                            border: `2px solid ${isDropdownOpen ? '#a0aec0' : '#e2e8f0'}`,
+                                            backgroundColor: 'white',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                            color: '#1a202c',
+                                            fontWeight: '600',
+                                            transition: 'all 0.3s ease'
+                                        }}
                                     >
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </motion.div>
+                                        <span>{selectedCategory ? `${selectedCategory}'s Collection` : '✨ Select Collection'}</span>
+                                        <motion.div
+                                            animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            style={{ color: '#718096' }}
+                                        >
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </motion.div>
+                                    </div>
+
+                                    <AnimatePresence>
+                                        {isDropdownOpen && (
+                                            <>
+                                                <div
+                                                    style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                />
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    transition={{ duration: 0.2 }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '120%',
+                                                        left: 0,
+                                                        width: '100%',
+                                                        backgroundColor: 'white',
+                                                        borderRadius: '1.5rem',
+                                                        padding: '0.5rem',
+                                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                                        border: '1px solid #e2e8f0',
+                                                        zIndex: 50,
+                                                        overflow: 'hidden'
+                                                    }}
+                                                >
+                                                    {['Men', 'Women', 'Kids'].map((item) => (
+                                                        <div
+                                                            key={item}
+                                                            onClick={() => {
+                                                                handleCategoryChange({ target: { value: item } });
+                                                                setIsDropdownOpen(false);
+                                                            }}
+                                                            style={{
+                                                                padding: '0.75rem 1.5rem',
+                                                                cursor: 'pointer',
+                                                                borderRadius: '1rem',
+                                                                transition: 'all 0.2s',
+                                                                color: selectedCategory === item ? 'white' : '#4a5568',
+                                                                backgroundColor: selectedCategory === item ? 'var(--color-primary)' : 'transparent',
+                                                                fontWeight: selectedCategory === item ? '600' : '500',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                if (selectedCategory !== item) e.target.style.backgroundColor = '#f7fafc';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                if (selectedCategory !== item) e.target.style.backgroundColor = 'transparent';
+                                                            }}
+                                                        >
+                                                            {item}'s Collection
+                                                            {selectedCategory === item && <span>✓</span>}
+                                                        </div>
+                                                    ))}
+                                                </motion.div>
+                                            </>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
-                                <AnimatePresence>
-                                    {isDropdownOpen && (
-                                        <>
-                                            <div
-                                                style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-                                                onClick={() => setIsDropdownOpen(false)}
-                                            />
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                transition={{ duration: 0.2 }}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '120%',
-                                                    left: 0,
-                                                    width: '100%',
-                                                    backgroundColor: 'white',
-                                                    borderRadius: '1.5rem',
-                                                    padding: '0.5rem',
-                                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                                                    border: '1px solid #e2e8f0',
-                                                    zIndex: 50,
-                                                    overflow: 'hidden'
-                                                }}
-                                            >
-                                                {['Men', 'Women', 'Kids'].map((item) => (
-                                                    <div
-                                                        key={item}
-                                                        onClick={() => {
-                                                            handleCategoryChange({ target: { value: item } });
-                                                            setIsDropdownOpen(false);
-                                                        }}
-                                                        style={{
-                                                            padding: '0.75rem 1.5rem',
-                                                            cursor: 'pointer',
-                                                            borderRadius: '1rem',
-                                                            transition: 'all 0.2s',
-                                                            color: selectedCategory === item ? 'white' : '#4a5568',
-                                                            backgroundColor: selectedCategory === item ? 'var(--color-primary)' : 'transparent',
-                                                            fontWeight: selectedCategory === item ? '600' : '500',
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center'
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            if (selectedCategory !== item) e.target.style.backgroundColor = '#f7fafc';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            if (selectedCategory !== item) e.target.style.backgroundColor = 'transparent';
-                                                        }}
-                                                    >
-                                                        {item}'s Collection
-                                                        {selectedCategory === item && <span>✓</span>}
-                                                    </div>
-                                                ))}
-                                            </motion.div>
-                                        </>
-                                    )}
-                                </AnimatePresence>
+                                {selectedCategory && (
+                                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Search products..."
+                                            value={searchTerm}
+                                            onChange={handleSearch}
+                                            style={{
+                                                width: '300px',
+                                                padding: '1rem 1.5rem 1rem 3rem',
+                                                fontSize: '1rem',
+                                                fontFamily: "'Playfair Display', serif",
+                                                borderRadius: '50px',
+                                                border: '2px solid #e2e8f0',
+                                                backgroundColor: 'white',
+                                                color: '#1a202c',
+                                                fontWeight: '500',
+                                                transition: 'all 0.3s ease',
+                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                                outline: 'none'
+                                            }}
+                                            onFocus={(e) => e.target.style.borderColor = '#a0aec0'}
+                                            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                        />
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: '1rem',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            color: '#718096',
+                                            fontSize: '1.2rem'
+                                        }}>
+                                            🔍
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
 
@@ -252,9 +327,11 @@ const Collections = () => {
                                 <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>Loading products...</p> :
                                 !selectedCategory ?
                                     <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1', opacity: 0 }}></p> :
-                                    costumes.length === 0 ?
-                                        <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>No products found in this category.</p> :
-                                        costumes.map((costume, index) => (
+                                    filteredCostumes.length === 0 ?
+                                        <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>
+                                            {searchTerm ? 'No products found matching your search.' : 'No products found in this category.'}
+                                        </p> :
+                                        filteredCostumes.map((costume, index) => (
                                             <motion.div
                                                 key={costume._id}
                                                 initial={{ opacity: 0, y: 30 }}
@@ -316,10 +393,45 @@ const Collections = () => {
                                                         borderRadius: '9999px',
                                                         fontSize: '0.875rem',
                                                         fontWeight: 600,
-                                                        color: 'var(--color-primary)'
+                                                        color: 'var(--color-primary)',
+                                                        zIndex: 10
                                                     }}>
                                                         {costume.category}
                                                     </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleFavorite(costume._id);
+                                                        }}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: '1rem',
+                                                            left: '1rem',
+                                                            width: '40px',
+                                                            height: '40px',
+                                                            borderRadius: '50%',
+                                                            background: 'rgba(255, 255, 255, 0.9)',
+                                                            border: 'none',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '1.2rem',
+                                                            transition: 'all 0.3s ease',
+                                                            zIndex: 10,
+                                                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.target.style.transform = 'scale(1.1)';
+                                                            e.target.style.background = 'rgba(255, 255, 255, 1)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.target.style.transform = 'scale(1)';
+                                                            e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                                                        }}
+                                                    >
+                                                        {favorites.includes(costume._id) ? '❤️' : '🤍'}
+                                                    </button>
                                                 </div>
 
                                                 {/* Content */}
@@ -366,7 +478,7 @@ const Collections = () => {
                                                         ))}
                                                     </div>
 
-                                                    {/* Price and Button */}
+                                                    {/* Price */}
                                                     <div style={{
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
