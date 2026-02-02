@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import API_URL from '../config/api';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [favoritesCount, setFavoritesCount] = useState(0);
+    const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
     const { cartCount } = useCart();
@@ -52,6 +54,32 @@ const Navbar = () => {
             window.removeEventListener('favoritesUpdated', updateFavoritesCount);
         };
     }, []);
+
+    useEffect(() => {
+        if (isAdmin) {
+            const fetchPendingOrders = async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await fetch(`${API_URL}/orders`, {
+                        headers: { 'x-auth-token': token }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const pending = data.filter(order => order.status === 'Pending').length;
+                        setPendingOrdersCount(pending);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch pending orders count", err);
+                }
+            };
+            fetchPendingOrders();
+
+            // Allow other components to trigger an update
+            const handleOrderUpdate = () => fetchPendingOrders();
+            window.addEventListener('orderUpdated', handleOrderUpdate);
+            return () => window.removeEventListener('orderUpdated', handleOrderUpdate);
+        }
+    }, [isAdmin]);
 
     useEffect(() => {
         if (isMobileMenuOpen) {
@@ -153,8 +181,27 @@ const Navbar = () => {
                                     <Link to="/admin/add-product" style={linkStyle}>
                                         Add Product
                                     </Link>
-                                    <Link to="/admin/orders" style={linkStyle}>
+                                    <Link to="/admin/orders" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
                                         Orders
+                                        {pendingOrdersCount > 0 && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                top: '-8px',
+                                                right: '-12px',
+                                                background: '#ef4444',
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                width: '18px',
+                                                height: '18px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.7rem',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {pendingOrdersCount}
+                                            </span>
+                                        )}
                                     </Link>
 
                                 </>
