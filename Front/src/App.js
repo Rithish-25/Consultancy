@@ -11,6 +11,7 @@ import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 
 import AdminLogin from './pages/AdminLogin';
+import AdminOrders from './pages/AdminOrders';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
@@ -80,6 +81,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminAddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <ProtectedRoute>
+                <AdminOrders />
               </ProtectedRoute>
             }
           />

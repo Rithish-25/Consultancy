@@ -153,6 +153,9 @@ const Navbar = () => {
                                     <Link to="/admin/add-product" style={linkStyle}>
                                         Add Product
                                     </Link>
+                                    <Link to="/admin/orders" style={linkStyle}>
+                                        Orders
+                                    </Link>
 
                                 </>
                             )}
@@ -476,6 +479,21 @@ const Navbar = () => {
                                                 }}
                                             >
                                                 Add Product
+                                            </Link>
+                                            <Link
+                                                to="/admin/orders"
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                style={{
+                                                    color: 'var(--color-white)',
+                                                    fontWeight: 500,
+                                                    fontSize: '1rem',
+                                                    padding: '0.75rem 0',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                                    textDecoration: 'none',
+                                                    transition: 'color 0.2s, transform 0.2s'
+                                                }}
+                                            >
+                                                Orders
                                             </Link>
 
                                         </>
