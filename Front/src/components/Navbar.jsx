@@ -208,6 +208,12 @@ const Navbar = () => {
                                             </span>
                                         )}
                                     </Link>
+                                    <Link to="/profile" style={{ ...linkStyle, display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }} title="My Profile">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                    </Link>
                                 </>
                             )}
                             <span onClick={handleLogout} style={linkStyle}>Logout</span>
@@ -551,6 +557,24 @@ const Navbar = () => {
                                                         {cartCount}
                                                     </span>
                                                 )}
+                                            </Link>
+                                            <Link
+                                                to="/profile"
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                style={{
+                                                    color: 'var(--color-white)',
+                                                    fontWeight: 500,
+                                                    fontSize: '1rem',
+                                                    padding: '0.75rem 0',
+                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                                                    textDecoration: 'none',
+                                                    transition: 'color 0.2s, transform 0.2s',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem'
+                                                }}
+                                            >
+                                                Profile
                                             </Link>
                                         </>
                                     )}

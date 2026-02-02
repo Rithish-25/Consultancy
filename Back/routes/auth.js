@@ -38,7 +38,14 @@ router.post('/login', async (req, res) => {
         let user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(400).json({ msg: 'User not found. Please signup first.' });
+            // Automatically create user profile if it does not exist
+            const name = email.split('@')[0]; // Derive name from email
+            user = new User({
+                name,
+                email,
+                role: 'user'
+            });
+            await user.save();
         }
 
         const payload = {
@@ -56,6 +63,22 @@ router.post('/login', async (req, res) => {
                 res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
             }
         );
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// @desc    Get current user profile
+// @route   GET /api/auth/me
+// @access  Private
+router.get('/me', require('../middleware/auth'), async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        res.json(user);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');

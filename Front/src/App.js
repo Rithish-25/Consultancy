@@ -8,6 +8,7 @@ import Collections from './pages/Collections';
 import ProductDetails from './pages/ProductDetails';
 import AdminAddProduct from './pages/AdminAddProduct';
 import Favorites from './pages/Favorites';
+import Profile from './pages/Profile';
 
 import AdminLogin from './pages/AdminLogin';
 
@@ -103,6 +104,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Favorites />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
