@@ -34,7 +34,7 @@ const Navbar = () => {
         };
 
         updateFavoritesCount();
-        
+
         // Listen for storage changes (in case favorites are updated in another tab)
         const handleStorageChange = (e) => {
             if (e.key === 'favorites') {
@@ -43,7 +43,7 @@ const Navbar = () => {
         };
 
         window.addEventListener('storage', handleStorageChange);
-        
+
         // Also listen for custom events (for same-tab updates)
         window.addEventListener('favoritesUpdated', updateFavoritesCount);
 
@@ -86,7 +86,7 @@ const Navbar = () => {
     };
 
     // Pages with dark hero backgrounds should have white navbar text
-    const pagesWithDarkHero = ['/', '/about', '/collections', '/admin/add-product'];
+    const pagesWithDarkHero = ['/', '/about', '/collections', '/admin/add-product', '/favorites'];
     const isProductDetailsPage = location.pathname.startsWith('/collections/') && location.pathname !== '/collections';
     const isAdminEditPage = location.pathname.startsWith('/admin/edit-product');
     const shouldUseWhiteText = !isScrolled && (pagesWithDarkHero.includes(location.pathname) || isProductDetailsPage || isAdminEditPage);
