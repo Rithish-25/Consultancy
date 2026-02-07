@@ -114,7 +114,7 @@ const Navbar = () => {
     };
 
     // Pages with dark hero backgrounds should have white navbar text
-    const pagesWithDarkHero = ['/', '/about', '/collections', '/admin/add-product', '/favorites'];
+    const pagesWithDarkHero = ['/', '/about', '/collections', '/admin/add-product', '/admin/orders', '/favorites'];
     const isProductDetailsPage = location.pathname.startsWith('/collections/') && location.pathname !== '/collections';
     const isAdminEditPage = location.pathname.startsWith('/admin/edit-product');
     const shouldUseWhiteText = !isScrolled && (pagesWithDarkHero.includes(location.pathname) || isProductDetailsPage || isAdminEditPage);
