@@ -6,11 +6,31 @@ import Navbar from '../components/Navbar';
 
 const Home = () => {
     const navigate = useNavigate();
-
+    // Scroll to top when Home component mounts with smooth animation
     useEffect(() => {
-        // Scroll to top when Home component mounts with smooth animation
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
+
+    const features = [
+        {
+            id: 1,
+            title: "Premier Cotton",
+            text: "Experience the unmatched softness and breathability of our hand-picked premier cotton.",
+            image: "/images/cotton.jpg"
+        },
+        {
+            id: 2,
+            title: "Luxurious Silk",
+            text: "Indulge in the smooth, elegant texture of our finest silk collection.",
+            image: "/images/silk.jpg"
+        },
+        {
+            id: 3,
+            title: "Versatile Polymer",
+            text: "Durable and stylish polymer fabrics designed for modern versatility and comfort.",
+            image: "/images/poly.jpg"
+        }
+    ];
 
     return (
         <>
@@ -55,8 +75,8 @@ const Home = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5, delay: 0.4 }}
                         >
-                            <Button 
-                                variant="primary" 
+                            <Button
+                                variant="primary"
                                 style={{ background: 'white', color: 'var(--color-primary)' }}
                                 onClick={() => navigate('/collections')}
                             >
@@ -80,9 +100,9 @@ const Home = () => {
                         </motion.div>
 
                         <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                            {[1, 2, 3].map((item) => (
+                            {features.map((item) => (
                                 <motion.div
-                                    key={item}
+                                    key={item.id}
                                     whileHover={{ y: -10 }}
                                     style={{
                                         background: 'white',
@@ -91,9 +111,16 @@ const Home = () => {
                                         boxShadow: 'var(--shadow-lg)'
                                     }}
                                 >
-                                    <div style={{ height: '200px', background: '#e2e8f0', borderRadius: '0.5rem', marginBottom: '1.5rem' }}></div>
-                                    <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Premium Collection {item}</h3>
-                                    <p style={{ color: 'var(--color-text-light)' }}>Experience the blend of comfort and luxury with our latest arrival.</p>
+                                    <div style={{
+                                        height: '200px',
+                                        background: `url(${item.image})`,
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center',
+                                        borderRadius: '0.5rem',
+                                        marginBottom: '1.5rem'
+                                    }}></div>
+                                    <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{item.title}</h3>
+                                    <p style={{ color: 'var(--color-text-light)' }}>{item.text}</p>
                                 </motion.div>
                             ))}
                         </div>

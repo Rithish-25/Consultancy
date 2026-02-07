@@ -181,6 +181,7 @@ const Navbar = () => {
                                     <Link to="/admin/add-product" style={linkStyle}>
                                         Add Product
                                     </Link>
+
                                     <Link to="/admin/orders" style={{ ...linkStyle, display: 'flex', alignItems: 'center', position: 'relative' }}>
                                         Orders
                                         {pendingOrdersCount > 0 && (
@@ -527,6 +528,7 @@ const Navbar = () => {
                                             >
                                                 Add Product
                                             </Link>
+
                                             <Link
                                                 to="/admin/orders"
                                                 onClick={() => setIsMobileMenuOpen(false)}
