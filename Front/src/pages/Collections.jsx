@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
@@ -7,6 +7,8 @@ import API_URL from '../config/api';
 
 const Collections = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const selectedCategory = searchParams.get('category') || '';
 
     const handleProductClick = (productId) => {
         navigate(`/collections/${productId}`);
@@ -14,7 +16,7 @@ const Collections = () => {
 
     const [costumes, setCostumes] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('');
+    // const [selectedCategory, setSelectedCategory] = useState(''); // Removed local state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredCostumes, setFilteredCostumes] = useState([]);
@@ -26,35 +28,48 @@ const Collections = () => {
         setFavorites(storedFavorites);
     }, []);
 
-    const handleCategoryChange = async (e) => {
-        const category = e.target.value;
-        setSelectedCategory(category);
-        setCostumes([]);
-        setFilteredCostumes([]);
+    // Fetch products when selectedCategory changes (from URL)
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setCostumes([]);
+            setFilteredCostumes([]);
 
-        if (category) {
-            setLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/products?category=${category}`);
-                const data = await res.json();
-                setCostumes(data);
-                setFilteredCostumes(data);
-            } catch (err) {
-                console.error('Error fetching products:', err);
-            } finally {
-                setLoading(false);
+            if (selectedCategory) {
+                setLoading(true);
+                try {
+                    const res = await fetch(`${API_URL}/products?category=${selectedCategory}`);
+                    const data = await res.json();
+                    setCostumes(data);
+                    setFilteredCostumes(data);
+                } catch (err) {
+                    console.error('Error fetching products:', err);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                // Reset if no category selected
+                setCostumes([]);
+                setFilteredCostumes([]);
             }
-        }
+        };
+
+        fetchProducts();
+    }, [selectedCategory]);
+
+    const handleCategoryChange = (e) => {
+        const category = e.target.value;
+        setSearchParams(category ? { category } : {});
+        // State update will trigger via useEffect
     };
 
     const handleSearch = (e) => {
         const searchValue = e.target.value;
         setSearchTerm(searchValue);
-        
+
         if (searchValue.trim() === '') {
             setFilteredCostumes(costumes);
         } else {
-            const filtered = costumes.filter(costume => 
+            const filtered = costumes.filter(costume =>
                 costume.name.toLowerCase().includes(searchValue.toLowerCase()) ||
                 costume.description.toLowerCase().includes(searchValue.toLowerCase()) ||
                 costume.features.some(feature => feature.toLowerCase().includes(searchValue.toLowerCase()))
@@ -65,16 +80,16 @@ const Collections = () => {
 
     const toggleFavorite = (productId) => {
         setFavorites(prev => {
-            const newFavorites = prev.includes(productId) 
+            const newFavorites = prev.includes(productId)
                 ? prev.filter(id => id !== productId)
                 : [...prev, productId];
-            
+
             // Save to localStorage
             localStorage.setItem('favorites', JSON.stringify(newFavorites));
-            
+
             // Dispatch custom event to notify other components
             window.dispatchEvent(new CustomEvent('favoritesUpdated'));
-            
+
             return newFavorites;
         });
     };

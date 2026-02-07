@@ -11,8 +11,6 @@ const ProductDetails = () => {
     const navigate = useNavigate();
     const [selectedSize, setSelectedSize] = useState(null);
     const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const { addToCart } = useCart();
     const [isAdded, setIsAdded] = useState(false);
     const isAdmin = localStorage.getItem('userRole') === 'admin';
@@ -29,17 +27,14 @@ const ProductDetails = () => {
                 }
                 const data = await res.json();
                 setProduct(data);
-                setLoading(false);
             } catch (err) {
                 console.error('Error fetching product:', err);
-                setError('Failed to load product.');
-                setLoading(false);
                 navigate('/collections');
             }
         };
 
         fetchProduct();
-    }, [id]);
+    }, [id, navigate]);
 
     const handleAddToCart = () => {
         if (product && (product.stock === undefined || product.stock > 0)) {
@@ -111,6 +106,38 @@ const ProductDetails = () => {
                     textAlign: 'center'
                 }}>
                     <div className="container" style={{ position: 'relative' }}>
+                        <motion.button
+                            onClick={() => navigate(-1)}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.2)' }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.3 }}
+                            style={{
+                                position: 'absolute',
+                                top: '2rem',
+                                left: '0',
+                                background: 'rgba(255,255,255,0.1)',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                backdropFilter: 'blur(8px)',
+                                color: 'white',
+                                fontSize: '1rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 1.25rem',
+                                borderRadius: '50px',
+                                zIndex: 10,
+                                fontWeight: 500,
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                            }}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M19 12H5M12 19l-7-7 7-7" />
+                            </svg>
+                            Back
+                        </motion.button>
                         {isAdmin && (
                             <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                                 <Link
