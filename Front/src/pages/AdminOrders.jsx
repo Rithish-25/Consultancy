@@ -235,6 +235,8 @@ const AdminOrders = () => {
                                         <th>Customer</th>
                                         <th>Items Details</th>
                                         <th>Total Amount</th>
+                                        <th>Payment</th>
+                                        <th>Shipping Address</th>
                                         <th>Date</th>
                                         <th>Status</th>
                                     </tr>
@@ -255,6 +257,17 @@ const AdminOrders = () => {
                                                 ))}
                                             </td>
                                             <td style={{ fontWeight: 600, color: '#0f172a', fontSize: '1.1rem' }}>₹{order.totalAmount}</td>
+                                            <td style={{ fontSize: '0.9rem', fontWeight: 600 }}>{order.paymentMethod || 'N/A'}</td>
+                                            <td style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '200px' }}>
+                                                {order.shippingDetails ? (
+                                                    <>
+                                                        <div style={{ fontWeight: 600 }}>{order.shippingDetails.name}</div>
+                                                        <div>{order.shippingDetails.phone}</div>
+                                                        <div>{order.shippingDetails.address}</div>
+                                                        <div>{order.shippingDetails.pincode}</div>
+                                                    </>
+                                                ) : 'N/A'}
+                                            </td>
                                             <td style={{ fontSize: '0.9rem', color: '#64748b' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                                             <td>
                                                 <div style={{
