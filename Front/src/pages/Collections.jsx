@@ -507,7 +507,7 @@ const Collections = () => {
                                                             fontWeight: 700,
                                                             color: 'var(--color-primary)'
                                                         }}>
-                                                            {costume.price}
+                                                            ₹{costume.price}
                                                         </span>
                                                         <Button
                                                             variant="primary"

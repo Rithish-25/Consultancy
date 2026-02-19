@@ -13,7 +13,7 @@ const Favorites = () => {
         // Load favorites from localStorage
         const storedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         setFavorites(storedFavorites);
-        
+
         if (storedFavorites.length > 0) {
             fetchFavoriteProducts(storedFavorites);
         }
@@ -23,7 +23,7 @@ const Favorites = () => {
         setLoading(true);
         try {
             // Fetch products that are in favorites
-            const promises = favoriteIds.map(id => 
+            const promises = favoriteIds.map(id =>
                 fetch(`${API_URL}/products/${id}`).then(res => res.json())
             );
             const products = await Promise.all(promises);
@@ -144,8 +144,8 @@ const Favorites = () => {
                                 fontSize: '1.125rem',
                                 marginBottom: '2rem'
                             }}>
-                                {favoriteProducts.length > 0 
-                                    ? 'Items you\'ve saved for later' 
+                                {favoriteProducts.length > 0
+                                    ? 'Items you\'ve saved for later'
                                     : 'Start adding items to your favorites to see them here'}
                             </p>
 
@@ -173,9 +173,9 @@ const Favorites = () => {
                             {loading ? (
                                 <p style={{ textAlign: 'center', width: '100%', gridColumn: '1/-1' }}>Loading your favorites...</p>
                             ) : favoriteProducts.length === 0 ? (
-                                <div style={{ 
-                                    textAlign: 'center', 
-                                    width: '100%', 
+                                <div style={{
+                                    textAlign: 'center',
+                                    width: '100%',
                                     gridColumn: '1/-1',
                                     padding: '4rem 2rem'
                                 }}>
@@ -357,7 +357,7 @@ const Favorites = () => {
                                                     fontWeight: 700,
                                                     color: 'var(--color-primary)'
                                                 }}>
-                                                    {product.price}
+                                                    ₹{product.price}
                                                 </span>
                                                 <Button
                                                     variant="primary"

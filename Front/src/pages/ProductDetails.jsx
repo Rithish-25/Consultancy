@@ -251,7 +251,7 @@ const ProductDetails = () => {
                                         color: 'var(--color-primary)',
                                         marginBottom: '1.5rem'
                                     }}>
-                                        {product.price}
+                                        ₹{product.price}
                                     </div>
 
                                     {/* Description */}

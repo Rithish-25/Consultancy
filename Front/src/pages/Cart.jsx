@@ -158,7 +158,7 @@ const Cart = () => {
                                                                 <span style={{ fontWeight: 600 }}>Size:</span> {item.selectedSize}
                                                             </p>
                                                         )}
-                                                        <p style={{ fontWeight: 600 }}>{item.price}</p>
+                                                        <p style={{ fontWeight: 600 }}>₹{item.price}</p>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
