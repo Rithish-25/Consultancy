@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import API_URL from '../config/api';
 
 const CartContext = createContext();
 
@@ -17,6 +18,38 @@ export const CartProvider = ({ children }) => {
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
+
+    // Sync stock weights on mount to ensure user doesn't see stale stock
+    useEffect(() => {
+        const syncStock = async () => {
+            if (cart.length === 0) return;
+
+            try {
+                const updatedCart = await Promise.all(cart.map(async (item) => {
+                    try {
+                        const res = await fetch(`${API_URL}/products/${item._id}`);
+                        if (!res.ok) return item;
+                        const liveProduct = await res.json();
+                        return { ...item, stock: liveProduct.stock };
+                    } catch {
+                        return item;
+                    }
+                }));
+
+                // Compare to avoid state update loops
+                const cartStockMap = cart.map(i => i.stock).join(',');
+                const updatedStockMap = updatedCart.map(i => i.stock).join(',');
+
+                if (cartStockMap !== updatedStockMap) {
+                    setCart(updatedCart);
+                }
+            } catch (err) {
+                console.error("Cart stock sync failed:", err);
+            }
+        };
+
+        syncStock();
+    }, []); // Only once on mount
 
     const addToCart = (product, size = null) => {
         setCart(prevCart => {

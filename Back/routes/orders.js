@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Order = require('../models/Order');
 const User = require('../models/User');
+const Product = require('../models/Product');
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -17,6 +18,17 @@ router.post('/', auth, async (req, res) => {
 
         if (!shippingDetails || !paymentMethod) {
             return res.status(400).json({ msg: 'Shipping details and payment method are required' });
+        }
+
+        // Verify stock for all items before creating order
+        for (const item of items) {
+            const product = await Product.findById(item._id);
+            if (!product) {
+                return res.status(404).json({ msg: `Product ${item.name} not found` });
+            }
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ msg: `Insufficient stock for ${item.name}. Available: ${product.stock}` });
+            }
         }
 
         const newOrder = new Order({
@@ -35,6 +47,16 @@ router.post('/', auth, async (req, res) => {
         });
 
         const order = await newOrder.save();
+
+        // Decrement stock for each item
+        for (const item of items) {
+            const qty = Number(item.quantity);
+            console.log(`Decrementing stock for ${item.name} (${item._id}) by ${qty}`);
+            const updatedProduct = await Product.findByIdAndUpdate(item._id, {
+                $inc: { stock: -qty }
+            }, { new: true });
+            console.log(`New stock for ${item.name}: ${updatedProduct.stock}`);
+        }
         res.json(order);
     } catch (err) {
         console.error('Error creating order:', err.message);
@@ -103,6 +125,23 @@ router.put('/:id/status', auth, async (req, res) => {
 
         if (!order) {
             return res.status(404).json({ msg: 'Order not found' });
+        }
+
+        // If status is changing TO Cancelled from something else, restore stock
+        if (status === 'Cancelled' && order.status !== 'Cancelled') {
+            for (const item of order.items) {
+                await Product.findByIdAndUpdate(item.product, {
+                    $inc: { stock: item.quantity }
+                });
+            }
+        }
+        // If status is changing FROM Cancelled to something else, decrement stock again
+        else if (order.status === 'Cancelled' && status !== 'Cancelled') {
+            for (const item of order.items) {
+                await Product.findByIdAndUpdate(item.product, {
+                    $inc: { stock: -item.quantity }
+                });
+            }
         }
 
         order.status = status;
