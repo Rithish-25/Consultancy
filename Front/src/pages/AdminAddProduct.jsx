@@ -29,7 +29,51 @@ const AdminAddProduct = () => {
     const [msg, setMsg] = useState('');
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (e.target.name === 'price') {
+            // Only allow numeric values
+            const value = e.target.value.replace(/\D/g, '');
+            setFormData({ ...formData, [e.target.name]: value });
+        } else {
+            setFormData({ ...formData, [e.target.name]: e.target.value });
+        }
+    };
+
+    const handleSizeChange = (size) => {
+        setFormData(prev => {
+            const currentSizes = prev.sizes ? prev.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
+            const newSizes = currentSizes.includes(size)
+                ? currentSizes.filter(s => s !== size)
+                : [...currentSizes, size];
+            return { ...prev, sizes: newSizes.join(', ') };
+        });
+    };
+
+    const handleColorChange = (color) => {
+        setFormData(prev => {
+            const currentColors = prev.colors ? prev.colors.split(',').map(c => c.trim()).filter(c => c) : [];
+            const newColors = currentColors.includes(color)
+                ? currentColors.filter(c => c !== color)
+                : [...currentColors, color];
+            return { ...prev, colors: newColors.join(', ') };
+        });
+    };
+
+    const materialCareMap = {
+        'Cotton': 'Machine wash cold, tumble dry low',
+        'Silk': 'Hand wash only, do not wring',
+        'Polyester': 'Machine wash warm, quick dry',
+        'Linen': 'Hand wash or gentle machine wash, air dry',
+        'Wool': 'Dry clean recommended or hand wash cold'
+    };
+
+    const handleMaterialChange = (e) => {
+        const material = e.target.value;
+        const careInstructions = materialCareMap[material] || '';
+        setFormData(prev => ({
+            ...prev,
+            material: material,
+            careInstructions: careInstructions
+        }));
     };
 
     useEffect(() => {
@@ -66,6 +110,14 @@ const AdminAddProduct = () => {
         e.preventDefault();
         setLoading(true);
         setMsg('');
+
+        // Image URL validation
+        const imgRegex = /^\\images\\.+\.(jpg|jpeg|png|webp|avif)$/i;
+        if (!imgRegex.test(formData.image)) {
+            setMsg('Error: Image URL must be in format \\images\\sample.jpg');
+            setLoading(false);
+            return;
+        }
 
         // Transform comma separated strings to arrays
         const payload = {
@@ -260,6 +312,7 @@ const AdminAddProduct = () => {
                                     <input
                                         required
                                         name="price"
+                                        inputMode="numeric"
                                         value={formData.price}
                                         onChange={handleChange}
                                         className="admin-input"
@@ -290,7 +343,7 @@ const AdminAddProduct = () => {
                                         value={formData.image}
                                         onChange={handleChange}
                                         className="admin-input"
-                                        placeholder="https://..."
+                                        placeholder="\images\sample.jpg"
                                     />
                                 </div>
                             </div>
@@ -336,23 +389,35 @@ const AdminAddProduct = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label className="admin-label">Sizes</label>
-                                    <input
-                                        name="sizes"
-                                        value={formData.sizes}
-                                        onChange={handleChange}
-                                        placeholder="S, M, L, XL"
-                                        className="admin-input"
-                                    />
+                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', padding: '0.75rem 0' }}>
+                                        {['S', 'M', 'L', 'XL'].map((size) => (
+                                            <label key={size} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.sizes.split(',').map(s => s.trim()).includes(size)}
+                                                    onChange={() => handleSizeChange(size)}
+                                                    style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
+                                                />
+                                                {size}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="admin-label">Colors</label>
-                                    <input
-                                        name="colors"
-                                        value={formData.colors}
-                                        onChange={handleChange}
-                                        placeholder="Red, Blue, Gold"
-                                        className="admin-input"
-                                    />
+                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', padding: '0.75rem 0' }}>
+                                        {['Red', 'Blue', 'Gold', 'Black', 'White'].map((color) => (
+                                            <label key={color} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.colors.split(',').map(c => c.trim()).includes(color)}
+                                                    onChange={() => handleColorChange(color)}
+                                                    style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
+                                                />
+                                                {color}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -360,13 +425,17 @@ const AdminAddProduct = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label className="admin-label">Material</label>
-                                    <input
+                                    <select
                                         name="material"
                                         value={formData.material}
-                                        onChange={handleChange}
-                                        className="admin-input"
-                                        placeholder="e.g. 100% Cotton"
-                                    />
+                                        onChange={handleMaterialChange}
+                                        className="admin-input admin-select"
+                                    >
+                                        <option value="" style={{ color: 'black' }}>Select Material</option>
+                                        {['Cotton', 'Silk', 'Polyester', 'Linen', 'Wool'].map((mat) => (
+                                            <option key={mat} value={mat} style={{ color: 'black' }}>{mat}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="admin-label">Origin</label>
@@ -385,9 +454,10 @@ const AdminAddProduct = () => {
                                 <input
                                     name="careInstructions"
                                     value={formData.careInstructions}
-                                    onChange={handleChange}
+                                    readOnly
                                     className="admin-input"
-                                    placeholder="e.g. Dry clean only"
+                                    style={{ background: '#f1f5f9', cursor: 'not-allowed' }}
+                                    placeholder="Select a material to see instructions..."
                                 />
                             </div>
 
