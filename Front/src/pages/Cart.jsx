@@ -1,11 +1,89 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+    ShoppingBag,
+    MapPin,
+    User,
+    Phone,
+    CreditCard,
+    ArrowLeft,
+    Check,
+    ShieldCheck,
+    Hash,
+    Truck,
+    Wallet,
+    Info
+} from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import { useCart } from '../context/CartContext';
 import API_URL from '../config/api';
 import SuccessModal from '../components/SuccessModal';
+
+const CheckoutStepper = ({ currentStep }) => {
+    const steps = [
+        { id: 'cart', label: 'Cart', icon: ShoppingBag },
+        { id: 'shipping', label: 'Shipping', icon: Truck },
+        { id: 'payment', label: 'Payment', icon: Wallet },
+    ];
+
+    const getStepStatus = (stepId) => {
+        const order = ['cart', 'shipping', 'payment', 'gpay', 'card'];
+        const currentIndex = order.indexOf(currentStep === 'gpay' || currentStep === 'card' ? 'payment' : currentStep);
+        const stepIndex = order.indexOf(stepId);
+
+        if (currentIndex > stepIndex) return 'completed';
+        if (currentIndex === stepIndex) return 'active';
+        return 'pending';
+    };
+
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '4rem', gap: '1rem' }}>
+            {steps.map((step, index) => {
+                const status = getStepStatus(step.id);
+                const StepIcon = step.icon;
+
+                return (
+                    <React.Fragment key={step.id}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
+                            <div style={{
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '1rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: status === 'active' ? '#0F172A' : status === 'completed' ? '#16a34a' : '#f1f5f9',
+                                color: status === 'pending' ? '#94a3b8' : '#fff',
+                                transition: 'all 0.3s ease',
+                                boxShadow: status === 'active' ? '0 10px 15px -3px rgba(15, 23, 42, 0.2)' : 'none'
+                            }}>
+                                {status === 'completed' ? <Check size={20} /> : <StepIcon size={20} />}
+                            </div>
+                            <span style={{
+                                fontSize: '0.85rem',
+                                fontWeight: status === 'active' ? 700 : 500,
+                                color: status === 'active' ? '#0F172A' : '#94a3b8'
+                            }}>
+                                {step.label}
+                            </span>
+                        </div>
+                        {index < steps.length - 1 && (
+                            <div style={{
+                                width: '60px',
+                                height: '2px',
+                                background: status === 'completed' ? '#16a34a' : '#e2e8f0',
+                                marginBottom: '1.5rem',
+                                transition: 'all 0.3s ease'
+                            }} />
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </div>
+    );
+};
 
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity, cartCount, cartTotal, clearCart } = useCart();
@@ -25,17 +103,76 @@ const Cart = () => {
         expiry: '',
         cvv: ''
     });
+    const [errors, setErrors] = useState({});
     const [paymentMethod, setPaymentMethod] = useState('');
+
+    const validateShipping = (name, value) => {
+        let error = '';
+        if (name === 'name') {
+            if (value.length > 0 && value.length < 3) error = 'Name must be at least 3 characters';
+            else if (value.length > 0 && !/^[a-zA-Z\s]*$/.test(value)) error = 'Name can only contain letters';
+        }
+        if (name === 'phone') {
+            if (value.length > 0 && !/^\d{10}$/.test(value)) error = 'Phone must be exactly 10 digits';
+        }
+        if (name === 'pincode') {
+            if (value.length > 0 && !/^\d{6}$/.test(value)) error = 'Pincode must be exactly 6 digits';
+        }
+        if (name === 'address') {
+            if (value.length > 0 && value.length < 10) error = 'Please enter a more detailed address';
+        }
+        return error;
+    };
+
+    const validateCard = (name, value) => {
+        let error = '';
+        if (name === 'number') {
+            const clean = value.replace(/\s/g, '');
+            if (clean.length > 0 && !/^\d{16}$/.test(clean)) error = 'Card number must be 16 digits';
+        }
+        if (name === 'expiry') {
+            if (value.length > 0 && !/^(0[1-9]|1[0-2])\/\d{2}$/.test(value)) error = 'Use MM/YY format';
+            else if (value.length === 5) {
+                const [m, y] = value.split('/').map(Number);
+                const now = new Date();
+                const currentMonth = now.getMonth() + 1;
+                const currentYear = now.getFullYear() % 100;
+                if (y < currentYear || (y === currentYear && m < currentMonth)) error = 'Card has expired';
+            }
+        }
+        if (name === 'cvv') {
+            if (value.length > 0 && !/^\d{3}$/.test(value)) error = 'CVV must be 3 digits';
+        }
+        return error;
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setShippingDetails(prev => ({ ...prev, [name]: value }));
+        const error = validateShipping(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
     };
 
     const handleCardInputChange = (e) => {
-        const { name, value } = e.target;
-        // Basic formatting/validation can be added here
+        let { name, value } = e.target;
+
+        // Auto-formatting for Card Number
+        if (name === 'number') {
+            value = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
+        }
+        // Auto-formatting for Expiry
+        if (name === 'expiry') {
+            value = value.replace(/\D/g, '');
+            if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            value = value.slice(0, 5);
+        }
+        if (name === 'cvv') {
+            value = value.replace(/\D/g, '').slice(0, 3);
+        }
+
         setCardDetails(prev => ({ ...prev, [name]: value }));
+        const error = validateCard(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
     };
 
     const handleBuyNow = () => {
@@ -115,12 +252,11 @@ const Cart = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <h1 style={{ marginBottom: '2rem', fontFamily: "'Playfair Display', serif", textAlign: 'center' }}>
-                            {step === 'cart' ? `Your Cart (${cartCount})` : step === 'shipping' ? 'Shipping Details' : step === 'payment' ? 'Payment Method' : step === 'card' ? 'Card Details' : 'GPay Scanner'}
-                        </h1>
+                        <CheckoutStepper currentStep={step} />
 
                         {cart.length === 0 && step === 'cart' ? (
                             <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+                                <ShoppingBag size={64} color="#e5e7eb" style={{ marginBottom: '1.5rem' }} />
                                 <p style={{ fontSize: '1.2rem', color: 'var(--color-text-light)', marginBottom: '2rem' }}>
                                     Your cart is currently empty.
                                 </p>
@@ -133,12 +269,12 @@ const Cart = () => {
                                 {/* Cart Items Step */}
                                 {step === 'cart' && (
                                     <>
-                                        <div style={{ background: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: 'var(--shadow-md)' }}>
+                                        <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                             {cart.map(item => (
                                                 <div key={item._id} style={{
                                                     display: 'flex',
                                                     gap: '1.5rem',
-                                                    borderBottom: '1px solid #e2e8f0',
+                                                    borderBottom: '1px solid #f1f5f9',
                                                     paddingBottom: '1.5rem',
                                                     marginBottom: '1.5rem',
                                                     alignItems: 'center'
@@ -146,7 +282,7 @@ const Cart = () => {
                                                     <img
                                                         src={item.image}
                                                         alt={item.name}
-                                                        style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '0.5rem' }}
+                                                        style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '1rem' }}
                                                     />
                                                     <div style={{ flex: 1 }}>
                                                         <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.name}</h3>
@@ -158,17 +294,17 @@ const Cart = () => {
                                                                 <span style={{ fontWeight: 600 }}>Size:</span> {item.selectedSize}
                                                             </p>
                                                         )}
-                                                        <p style={{ fontWeight: 600 }}>₹{item.price}</p>
+                                                        <p style={{ fontWeight: 700, color: '#0F172A' }}>₹{item.price}</p>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '0.75rem', overflow: 'hidden' }}>
                                                             <button
                                                                 onClick={() => updateQuantity(item._id, item.quantity - 1, item.selectedSize)}
-                                                                style={{ padding: '0.5rem 1rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                                                                style={{ padding: '0.5rem 1rem', background: '#f8fafc', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                                                             >
                                                                 -
                                                             </button>
-                                                            <span style={{ padding: '0.5rem', fontWeight: 500 }}>{item.quantity}</span>
+                                                            <span style={{ padding: '0.5rem 1rem', fontWeight: 600, minWidth: '40px', textAlign: 'center' }}>{item.quantity}</span>
                                                             <button
                                                                 onClick={() => {
                                                                     if (item.quantity < item.stock) {
@@ -180,10 +316,11 @@ const Cart = () => {
                                                                 disabled={item.quantity >= item.stock}
                                                                 style={{
                                                                     padding: '0.5rem 1rem',
-                                                                    background: 'none',
+                                                                    background: '#f8fafc',
                                                                     border: 'none',
                                                                     cursor: item.quantity >= item.stock ? 'not-allowed' : 'pointer',
-                                                                    opacity: item.quantity >= item.stock ? 0.5 : 1
+                                                                    opacity: item.quantity >= item.stock ? 0.3 : 1,
+                                                                    fontWeight: 600
                                                                 }}
                                                             >
                                                                 +
@@ -191,10 +328,10 @@ const Cart = () => {
                                                         </div>
                                                         <button
                                                             onClick={() => removeFromCart(item._id, item.selectedSize)}
-                                                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}
+                                                            style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', border: 'none', cursor: 'pointer', padding: '0.75rem', borderRadius: '0.75rem' }}
                                                             aria-label="Remove item"
                                                         >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                                 <polyline points="3 6 5 6 21 6"></polyline>
                                                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                                             </svg>
@@ -204,24 +341,24 @@ const Cart = () => {
                                             ))}
                                         </div>
 
-                                        <div style={{ background: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: 'var(--shadow-md)', position: 'sticky', top: '100px' }}>
-                                            <h3 style={{ fontSize: '1.25rem', fontFamily: "'Playfair Display', serif", marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+                                        <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', position: 'sticky', top: '100px' }}>
+                                            <h3 style={{ fontSize: '1.25rem', fontFamily: "'Playfair Display', serif", marginBottom: '1.5rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
                                                 Order Summary
                                             </h3>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                                <span style={{ color: 'var(--color-text-light)' }}>Subtotal</span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                                <span style={{ color: '#64748b' }}>Subtotal</span>
                                                 <span style={{ fontWeight: 600 }}>₹{cartTotal.toLocaleString()}</span>
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                                <span style={{ color: 'var(--color-text-light)' }}>Shipping</span>
-                                                <span style={{ color: '#16a34a', fontSize: '0.9rem' }}>Free</span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                                                <span style={{ color: '#64748b' }}>Shipping</span>
+                                                <span style={{ color: '#16a34a', fontSize: '0.9rem', fontWeight: 600 }}>Free Delivery</span>
                                             </div>
-                                            <div style={{ borderTop: '1px solid #e2e8f0', margin: '1rem 0', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ borderTop: '2px dashed #f1f5f9', margin: '1.5rem 0', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Total</span>
-                                                <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--color-primary)' }}>₹{cartTotal.toLocaleString()}</span>
+                                                <span style={{ fontWeight: 800, fontSize: '1.5rem', color: '#0F172A' }}>₹{cartTotal.toLocaleString()}</span>
                                             </div>
-                                            <Button variant="primary" style={{ width: '100%' }} onClick={handleBuyNow}>
-                                                Buy Now
+                                            <Button variant="primary" style={{ width: '100%', padding: '1.125rem', borderRadius: '1rem', marginTop: '1rem' }} onClick={handleBuyNow}>
+                                                Proceed to Checkout
                                             </Button>
                                         </div>
                                     </>
@@ -229,61 +366,140 @@ const Cart = () => {
 
                                 {/* Shipping Details Step */}
                                 {step === 'shipping' && (
-                                    <div style={{ background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-lg)', maxWidth: '500px', margin: '0 auto' }}>
-                                        <div style={{ display: 'grid', gap: '1.5rem' }}>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Full Name</label>
-                                                <input
-                                                    type="text"
-                                                    name="name"
-                                                    value={shippingDetails.name}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Enter your name"
-                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
-                                                    required
-                                                />
+                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '700px', margin: '0 auto' }}>
+                                        <div style={{ display: 'grid', gap: '2rem' }}>
+                                            {/* Name & Phone Grid */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+                                                <div className="input-field">
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                        <User size={16} color="#94a3b8" /> Full Name
+                                                    </label>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <input
+                                                            type="text"
+                                                            name="name"
+                                                            value={shippingDetails.name}
+                                                            onChange={handleInputChange}
+                                                            placeholder="John Doe"
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '1rem 1rem 1rem 1rem',
+                                                                borderRadius: '1rem',
+                                                                border: errors.name ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                                outline: 'none',
+                                                                fontSize: '1rem',
+                                                                transition: 'all 0.2s'
+                                                            }}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    {errors.name && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.name}</p>}
+                                                </div>
+                                                <div className="input-field">
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                        <Phone size={16} color="#94a3b8" /> Phone Number
+                                                    </label>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <input
+                                                            type="tel"
+                                                            name="phone"
+                                                            value={shippingDetails.phone}
+                                                            onChange={handleInputChange}
+                                                            placeholder="9876543210"
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '1rem',
+                                                                borderRadius: '1rem',
+                                                                border: errors.phone ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                                outline: 'none',
+                                                                fontSize: '1rem',
+                                                                transition: 'all 0.2s'
+                                                            }}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    {errors.phone && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.phone}</p>}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Phone Number</label>
-                                                <input
-                                                    type="tel"
-                                                    name="phone"
-                                                    value={shippingDetails.phone}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Enter phone number"
-                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Address</label>
+
+                                            <div className="input-field">
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                    <MapPin size={16} color="#94a3b8" /> Delivery Address
+                                                </label>
                                                 <textarea
                                                     name="address"
                                                     value={shippingDetails.address}
                                                     onChange={handleInputChange}
-                                                    placeholder="Flat / House no. / Street"
-                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', minHeight: '100px' }}
+                                                    placeholder="Flat / House no., Street, Colony"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '1rem',
+                                                        borderRadius: '1rem',
+                                                        border: errors.address ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                        minHeight: '120px',
+                                                        outline: 'none',
+                                                        fontSize: '1rem',
+                                                        resize: 'none',
+                                                        transition: 'all 0.2s'
+                                                    }}
                                                     required
                                                 />
+                                                {errors.address && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.address}</p>}
                                             </div>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Pincode</label>
+
+                                            <div className="input-field" style={{ maxWidth: '240px' }}>
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                    <Hash size={16} color="#94a3b8" /> Pincode
+                                                </label>
                                                 <input
                                                     type="text"
                                                     name="pincode"
                                                     value={shippingDetails.pincode}
                                                     onChange={handleInputChange}
-                                                    placeholder="6-digit pincode"
-                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                                                    placeholder="110001"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '1rem',
+                                                        borderRadius: '1rem',
+                                                        border: errors.pincode ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                        outline: 'none',
+                                                        fontSize: '1rem',
+                                                        transition: 'all 0.2s'
+                                                    }}
                                                     required
                                                 />
+                                                {errors.pincode && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.pincode}</p>}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                                <Button variant="secondary" style={{ flex: 1 }} onClick={() => setStep('cart')}>Back</Button>
+
+                                            <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.5rem' }}>
+                                                <Button
+                                                    variant="secondary"
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '1.125rem',
+                                                        borderRadius: '1rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '0.5rem'
+                                                    }}
+                                                    onClick={() => setStep('cart')}
+                                                >
+                                                    <ArrowLeft size={18} /> Back to Cart
+                                                </Button>
                                                 <Button
                                                     variant="primary"
-                                                    style={{ flex: 1 }}
-                                                    disabled={!shippingDetails.name || !shippingDetails.phone || !shippingDetails.address || !shippingDetails.pincode}
+                                                    style={{
+                                                        flex: 1.5,
+                                                        padding: '1.125rem',
+                                                        borderRadius: '1rem',
+                                                        background: (!shippingDetails.name || !shippingDetails.phone || !shippingDetails.address || !shippingDetails.pincode || Object.values(errors).some(e => e)) ? '#94a3b8' : '#0F172A',
+                                                        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)'
+                                                    }}
+                                                    disabled={
+                                                        !shippingDetails.name || !shippingDetails.phone || !shippingDetails.address || !shippingDetails.pincode ||
+                                                        Object.values(errors).some(e => e)
+                                                    }
                                                     onClick={() => setStep('payment')}
                                                 >
                                                     Continue to Payment
@@ -295,97 +511,202 @@ const Cart = () => {
 
                                 {/* Payment Method Step */}
                                 {step === 'payment' && (
-                                    <div style={{ background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-lg)', maxWidth: '500px', margin: '0 auto' }}>
-                                        <div style={{ display: 'grid', gap: '1rem' }}>
+                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '600px', margin: '0 auto' }}>
+                                        <h3 style={{ fontSize: '1.5rem', fontFamily: "'Playfair Display', serif", marginBottom: '2rem', textAlign: 'center' }}>Choose Payment Method</h3>
+                                        <div style={{ display: 'grid', gap: '1.25rem' }}>
                                             <button
                                                 onClick={() => handlePaymentSelect('COD')}
-                                                style={{ padding: '1.5rem', borderRadius: '1rem', border: '2px solid #f1f5f9', background: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                                style={{
+                                                    padding: '1.5rem',
+                                                    borderRadius: '1.25rem',
+                                                    border: '2px solid #f1f5f9',
+                                                    background: '#fff',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'left',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    transition: 'all 0.2s',
+                                                    width: '100%'
+                                                }}
+                                                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#0F172A'; e.currentTarget.style.background = '#f8fafc'; }}
+                                                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.background = '#fff'; }}
                                             >
-                                                <div>
-                                                    <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>Cash on Delivery</div>
-                                                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>Pay when you receive the product</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                                    <div style={{ width: '48px', height: '48px', borderRadius: '1rem', background: 'rgba(15, 23, 42, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <Truck size={24} color="#0F172A" />
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0F172A' }}>Cash on Delivery</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>Pay when you receive the product</div>
+                                                    </div>
                                                 </div>
-                                                <span style={{ fontSize: '1.5rem' }}>💵</span>
+                                                <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #e2e8f0' }}></div>
                                             </button>
+
                                             <button
                                                 onClick={() => handlePaymentSelect('Card')}
-                                                style={{ padding: '1.5rem', borderRadius: '1rem', border: '2px solid #f1f5f9', background: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                                style={{
+                                                    padding: '1.5rem',
+                                                    borderRadius: '1.25rem',
+                                                    border: '2px solid #f1f5f9',
+                                                    background: '#fff',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'left',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    transition: 'all 0.2s',
+                                                    width: '100%'
+                                                }}
+                                                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#0F172A'; e.currentTarget.style.background = '#f8fafc'; }}
+                                                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.background = '#fff'; }}
                                             >
-                                                <div>
-                                                    <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>Credit / Debit Card</div>
-                                                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>Visa, Mastercard, RuPay</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                                    <div style={{ width: '48px', height: '48px', borderRadius: '1rem', background: 'rgba(15, 23, 42, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <CreditCard size={24} color="#0F172A" />
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0F172A' }}>Credit / Debit Card</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>Visa, Mastercard, RuPay</div>
+                                                    </div>
                                                 </div>
-                                                <span style={{ fontSize: '1.5rem' }}>💳</span>
+                                                <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #e2e8f0' }}></div>
                                             </button>
+
                                             <button
                                                 onClick={() => handlePaymentSelect('GPay')}
-                                                style={{ padding: '1.5rem', borderRadius: '1rem', border: '2px solid #f1f5f9', background: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                                style={{
+                                                    padding: '1.5rem',
+                                                    borderRadius: '1.25rem',
+                                                    border: '2px solid #f1f5f9',
+                                                    background: '#fff',
+                                                    cursor: 'pointer',
+                                                    textAlign: 'left',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    transition: 'all 0.2s',
+                                                    width: '100%'
+                                                }}
+                                                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#0F172A'; e.currentTarget.style.background = '#f8fafc'; }}
+                                                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.background = '#fff'; }}
                                             >
-                                                <div>
-                                                    <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>GPay / UPI Scanner</div>
-                                                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>Scan QR to pay automatically</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                                    <div style={{ width: '48px', height: '48px', borderRadius: '1rem', background: 'rgba(15, 23, 42, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <img src="/images/gpay.jpg" style={{ height: '24px', borderRadius: '4px' }} alt="GPay" />
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0F172A' }}>GPay / UPI Scanner</div>
+                                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.2rem' }}>Scan QR to pay automatically</div>
+                                                    </div>
                                                 </div>
-                                                <img src="/images/gpay.jpg" style={{ height: '30px', borderRadius: '4px' }} alt="GPay" />
+                                                <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #e2e8f0' }}></div>
                                             </button>
-                                            <Button variant="secondary" style={{ marginTop: '1rem' }} onClick={() => setStep('shipping')}>Back</Button>
+
+                                            <Button
+                                                variant="secondary"
+                                                style={{ marginTop: '1.5rem', borderRadius: '1rem', padding: '1rem' }}
+                                                onClick={() => setStep('shipping')}
+                                            >
+                                                Back to Shipping
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Card Details Step */}
                                 {step === 'card' && (
-                                    <div style={{ background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-lg)', maxWidth: '400px', margin: '0 auto' }}>
-                                        <div style={{ display: 'grid', gap: '1.5rem' }}>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Card Number</label>
+                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '500px', margin: '0 auto' }}>
+                                        <div style={{ display: 'grid', gap: '2rem' }}>
+                                            <div className="input-field">
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                    <CreditCard size={16} color="#94a3b8" /> Card Number
+                                                </label>
                                                 <input
                                                     type="text"
                                                     name="number"
                                                     value={cardDetails.number}
                                                     onChange={handleCardInputChange}
                                                     placeholder="0000 0000 0000 0000"
-                                                    maxLength="19"
-                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '1rem',
+                                                        borderRadius: '1rem',
+                                                        border: errors.number ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                        outline: 'none',
+                                                        fontSize: '1.1rem',
+                                                        letterSpacing: '0.1em'
+                                                    }}
                                                     required
                                                 />
+                                                {errors.number && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.number}</p>}
                                             </div>
-                                            <div style={{ display: 'flex', gap: '1rem' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Expiry (MM/YY)</label>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                                <div className="input-field">
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                        <Check size={16} color="#94a3b8" /> Expiry
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         name="expiry"
                                                         value={cardDetails.expiry}
                                                         onChange={handleCardInputChange}
                                                         placeholder="MM/YY"
-                                                        maxLength="5"
-                                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '1rem',
+                                                            borderRadius: '1rem',
+                                                            border: errors.expiry ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                            outline: 'none'
+                                                        }}
                                                         required
                                                     />
+                                                    {errors.expiry && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.expiry}</p>}
                                                 </div>
-                                                <div style={{ flex: 1 }}>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>CVV</label>
+                                                <div className="input-field">
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                                                        <ShieldCheck size={16} color="#94a3b8" /> CVV
+                                                    </label>
                                                     <input
                                                         type="password"
                                                         name="cvv"
                                                         value={cardDetails.cvv}
                                                         onChange={handleCardInputChange}
                                                         placeholder="123"
-                                                        maxLength="3"
-                                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '1rem',
+                                                            borderRadius: '1rem',
+                                                            border: errors.cvv ? '1.5px solid #ef4444' : '1.5px solid #e2e8f0',
+                                                            outline: 'none'
+                                                        }}
                                                         required
                                                     />
+                                                    {errors.cvv && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.cvv}</p>}
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+
+                                            <div style={{ display: 'grid', gap: '1rem', marginTop: '1.5rem' }}>
                                                 <Button
                                                     variant="primary"
+                                                    style={{
+                                                        padding: '1.125rem',
+                                                        borderRadius: '1rem',
+                                                        background: (loading || !cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || errors.number || errors.expiry || errors.cvv) ? '#94a3b8' : '#0F172A',
+                                                        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)'
+                                                    }}
                                                     onClick={() => submitOrder('Card')}
-                                                    disabled={loading || !cardDetails.number || !cardDetails.expiry || !cardDetails.cvv}
+                                                    disabled={
+                                                        loading ||
+                                                        !cardDetails.number || !cardDetails.expiry || !cardDetails.cvv ||
+                                                        errors.number || errors.expiry || errors.cvv
+                                                    }
                                                 >
                                                     {loading ? 'Processing...' : `Pay ₹${cartTotal.toLocaleString()}`}
                                                 </Button>
-                                                <Button variant="secondary" onClick={() => setStep('payment')}>Back</Button>
+                                                <Button variant="secondary" style={{ borderRadius: '1rem' }} onClick={() => setStep('payment')}>Back to Methods</Button>
                                             </div>
                                         </div>
                                     </div>
@@ -393,21 +714,32 @@ const Cart = () => {
 
                                 {/* GPay Scanner Step */}
                                 {step === 'gpay' && (
-                                    <div style={{ background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-lg)', maxWidth: '400px', margin: '0 auto', textAlign: 'center' }}>
-                                        <h3 style={{ marginBottom: '1rem' }}>Scan to Pay ₹{cartTotal.toLocaleString()}</h3>
-                                        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '2rem' }}>Open GPay or any UPI app to scan</p>
-                                        <div style={{ background: '#f8fafc', padding: '2rem', borderRadius: '1rem', marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
-                                            <img src={qrCodeUrl} alt="UPI QR Code" style={{ width: '200px', height: '200px' }} />
+                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
+                                        <div style={{ width: '64px', height: '64px', borderRadius: '1.25rem', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+                                            <Wallet size={32} color="#0F172A" />
                                         </div>
-                                        <div style={{ marginBottom: '2rem' }}>
-                                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Merchant Name</div>
-                                            <div style={{ fontWeight: 600 }}>CanonBall Fashions</div>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Scan to Pay ₹{cartTotal.toLocaleString()}</h3>
+                                        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '2.5rem' }}>Open GPay or any UPI app to scan</p>
+
+                                        <div style={{ background: '#f8fafc', padding: '2.5rem', borderRadius: '2rem', marginBottom: '2.5rem', display: 'flex', justifyContent: 'center', border: '2px solid #f1f5f9' }}>
+                                            <img src={qrCodeUrl} alt="UPI QR Code" style={{ width: '200px', height: '200px', borderRadius: '1rem' }} />
                                         </div>
-                                        <div style={{ display: 'grid', gap: '1rem' }}>
-                                            <Button variant="primary" onClick={() => submitOrder('GPay')} disabled={loading}>
+
+                                        <div style={{ marginBottom: '2.5rem', padding: '1rem', borderRadius: '1rem', background: 'rgba(15, 23, 42, 0.03)' }}>
+                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem', fontWeight: 700 }}>Merchant Name</div>
+                                            <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '1.1rem' }}>CanonBall Fashions</div>
+                                        </div>
+
+                                        <div style={{ display: 'grid', gap: '1.25rem' }}>
+                                            <Button
+                                                variant="primary"
+                                                style={{ padding: '1.125rem', borderRadius: '1rem', boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)' }}
+                                                onClick={() => submitOrder('GPay')}
+                                                disabled={loading}
+                                            >
                                                 {loading ? 'Processing...' : 'I have Paid'}
                                             </Button>
-                                            <Button variant="secondary" onClick={() => setStep('payment')}>Cancel</Button>
+                                            <Button variant="secondary" style={{ borderRadius: '1rem' }} onClick={() => setStep('payment')}>Cancel</Button>
                                         </div>
                                     </div>
                                 )}

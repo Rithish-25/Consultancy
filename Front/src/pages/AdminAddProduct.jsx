@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+    Package,
+    Tag,
+    IndianRupee,
+    Layers,
+    Image as ImageIcon,
+    Info,
+    FileText,
+    Check,
+    ShoppingBag,
+    Box,
+    History,
+    ShieldCheck,
+    MapPin,
+    ArrowLeft,
+    Plus
+} from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import API_URL from '../config/api';
@@ -27,15 +44,57 @@ const AdminAddProduct = () => {
     });
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState('');
+    const [errors, setErrors] = useState({});
+
+    const validateField = (name, value) => {
+        let error = '';
+        switch (name) {
+            case 'name':
+                if (!value) error = 'Product name is required';
+                else if (value.length < 3) error = 'Minimum 3 characters required';
+                break;
+            case 'price':
+                if (!value) error = 'Price is required';
+                else if (Number(value) <= 0) error = 'Price must be greater than 0';
+                break;
+            case 'category':
+                if (!value) error = 'Category is required';
+                break;
+            case 'image':
+                if (!value) error = 'Image path is required';
+                else if (!value.startsWith('\\images\\') && !value.startsWith('/images/')) error = 'Path must start with \\images\\';
+                break;
+            case 'stock':
+                if (value === '') error = 'Stock is required';
+                else if (Number(value) < 0) error = 'Stock cannot be negative';
+                break;
+            case 'description':
+                if (!value) error = 'Description is required';
+                else if (value.length < 10) error = 'Minimum 10 characters required';
+                break;
+            case 'material':
+                if (!value) error = 'Material is required';
+                break;
+            case 'origin':
+                if (!value) error = 'Origin is required';
+                break;
+            default:
+                break;
+        }
+        return error;
+    };
 
     const handleChange = (e) => {
-        if (e.target.name === 'price') {
-            // Only allow numeric values
-            const value = e.target.value.replace(/\D/g, '');
-            setFormData({ ...formData, [e.target.name]: value });
-        } else {
-            setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        let finalValue = value;
+
+        if (name === 'price' || name === 'stock') {
+            finalValue = value.replace(/\D/g, '');
         }
+
+        setFormData(prev => ({ ...prev, [name]: finalValue }));
+        const error = validateField(name, finalValue);
+        setErrors(prev => ({ ...prev, [name]: error }));
     };
 
     const handleSizeChange = (size) => {
@@ -85,7 +144,7 @@ const AdminAddProduct = () => {
                     setFormData({
                         name: data.name || '',
                         category: data.category || '',
-                        price: data.price || '',
+                        price: data.price ? String(data.price) : '',
                         stock: data.stock || 0,
                         description: data.description || '',
                         image: data.image || '',
@@ -108,6 +167,20 @@ const AdminAddProduct = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Final validation check
+        const newErrors = {};
+        Object.keys(formData).forEach(key => {
+            const error = validateField(key, formData[key]);
+            if (error) newErrors[key] = error;
+        });
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            setMsg('Error: Please correct the fields before submitting.');
+            return;
+        }
+
         setLoading(true);
         setMsg('');
 
@@ -122,9 +195,9 @@ const AdminAddProduct = () => {
         // Transform comma separated strings to arrays
         const payload = {
             ...formData,
-            features: formData.features.split(',').map(item => item.trim()).filter(i => i),
-            sizes: formData.sizes.split(',').map(item => item.trim()).filter(i => i),
-            colors: formData.colors.split(',').map(item => item.trim()).filter(i => i)
+            features: formData.features.split(',').map(item => item.trim()).filter(item => item),
+            sizes: formData.sizes.split(',').map(item => item.trim()).filter(item => item),
+            colors: formData.colors.split(',').map(item => item.trim()).filter(item => item)
         };
 
         try {
@@ -135,7 +208,7 @@ const AdminAddProduct = () => {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-auth-role': 'admin' // Simple role check as per requirement
+                    'x-auth-role': 'admin'
                 },
                 body: JSON.stringify(payload)
             });
@@ -149,7 +222,6 @@ const AdminAddProduct = () => {
                         price: '',
                         stock: '',
                         description: '',
-                        description: '',
                         image: '',
                         features: '',
                         fullDescription: '',
@@ -159,12 +231,10 @@ const AdminAddProduct = () => {
                         material: '',
                         origin: ''
                     });
-                    // Optional: navigate to collections after delay
                 }
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 setMsg(`Error: ${errorData.msg || res.statusText || 'Failed to update'}`);
-                console.error('Operation failed:', errorData);
             }
         } catch (err) {
             console.error(err);
@@ -178,312 +248,462 @@ const AdminAddProduct = () => {
             <style>
                 {`
                     .glass-card {
-                        background: rgba(255, 255, 255, 0.95);
-                        backdrop-filter: blur(10px);
-                        -webkit-backdrop-filter: blur(10px);
+                        background: #FFFFFF;
                         border: 1px solid rgba(226, 232, 240, 0.8);
-                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+                        border-radius: 2rem;
+                        overflow: hidden;
+                    }
+                    
+                    .admin-input-group {
+                        position: relative;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.5rem;
                     }
                     
                     .admin-input {
                         width: 100%;
-                        padding: 0.75rem 1rem;
-                        border-radius: 0.5rem;
-                        border: 1px solid #e2e8f0;
+                        padding: 0.875rem 1rem 0.875rem 2.75rem;
+                        border-radius: 1rem;
+                        border: 1.5px solid #e2e8f0;
                         background: #f8fafc;
-                        color: #1e293b;
-                        transition: all 0.2s ease;
+                        color: #0f172a;
+                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                         font-family: 'Inter', sans-serif;
-                    }
-                    
-                    .admin-input::placeholder {
-                        color: #94a3b8;
+                        font-size: 0.95rem;
                     }
                     
                     .admin-input:focus {
                         outline: none;
                         border-color: #0F172A;
                         background: #ffffff;
-                        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+                        box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+                    }
+                    
+                    .input-icon {
+                        position: absolute;
+                        left: 1rem;
+                        top: 2.65rem;
+                        color: #94a3b8;
+                        transition: color 0.2s;
+                    }
+                    
+                    .admin-input-group:focus-within .input-icon {
+                        color: #0F172A;
+                    }
+                    
+                    .admin-label {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-weight: 700;
+                        font-size: 0.75rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                        color: #64748b;
+                        margin-left: 0.5rem;
+                    }
+
+                    .checkbox-label {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        padding: 0.6rem 1rem;
+                        background: #f8fafc;
+                        border: 1.5px solid #e2e8f0;
+                        border-radius: 1rem;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        color: #475569;
+                        min-width: 60px;
+                        justify-content: center;
+                    }
+
+                    .checkbox-label:hover {
+                        border-color: #cbd5e1;
+                        background: #f1f5f9;
+                    }
+
+                    .checkbox-label.active {
+                        background: #0F172A;
+                        border-color: #0F172A;
+                        color: #FFFFFF;
+                    }
+
+                    .checkbox-label input {
+                        display: none;
                     }
                     
                     .admin-select {
                         appearance: none;
-                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%231e293b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-                        background-position: right 0.75rem center;
+                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                        background-position: right 1rem center;
                         background-repeat: no-repeat;
                         background-size: 1.25em 1.25em;
-                        padding-right: 2.5rem;
-                    }
-                    
-                    .admin-label {
-                        display: block;
-                        margin-bottom: 0.5rem;
-                        font-weight: 600;
-                        font-size: 0.75rem;
-                        text-transform: uppercase;
-                        letter-spacing: 0.05em;
-                        color: #475569;
+                        padding-right: 3rem;
                     }
                 `}
             </style>
             <Navbar />
             <div style={{
                 paddingTop: '6rem',
-                paddingBottom: '4rem',
+                paddingBottom: '6rem',
                 minHeight: '100vh',
                 background: 'linear-gradient(to bottom, #0F172A 0%, #0F172A 400px, #F1F5F9 400px, #F1F5F9 100%)',
                 position: 'relative'
             }}>
-
-                <div className="container" style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+                <div className="container" style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        transition={{ duration: 0.6 }}
                     >
-                        <h1 style={{
-                            marginBottom: '0.5rem',
-                            textAlign: 'center',
-                            fontFamily: "'Playfair Display', serif",
-                            fontSize: '2.5rem',
-                            color: '#FFFFFF'
-                        }}>
-                            {isEditMode ? 'Edit Product' : 'Add New Product'}
-                        </h1>
-                        <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '3rem' }}>
-                            {isEditMode ? 'Update product details and inventory' : 'Create a new addition to the collection'}
-                        </p>
+                        <div style={{ marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                background: 'rgba(229, 197, 133, 0.1)',
+                                borderRadius: '1.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: '1.5rem',
+                                border: '1px solid rgba(229, 197, 133, 0.2)'
+                            }}>
+                                <Plus size={32} color="#E5C585" />
+                            </div>
+                            <h1 style={{
+                                fontFamily: "'Playfair Display', serif",
+                                fontSize: '3rem',
+                                marginBottom: '0.75rem',
+                                color: '#FFFFFF',
+                                textAlign: 'center'
+                            }}>
+                                {isEditMode ? 'Edit Product' : 'Add New Product'}
+                            </h1>
+                            <p style={{ color: '#94a3b8', fontSize: '1.1rem', textAlign: 'center' }}>
+                                {isEditMode ? 'Update existing product details' : 'Create a new addition to the collection'}
+                            </p>
+                        </div>
 
                         {msg && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
                                 style={{
-                                    padding: '1rem',
-                                    background: msg.includes('Error') ? '#fee2e2' : '#dcfce7',
-                                    color: msg.includes('Error') ? '#991b1b' : '#166534',
-                                    borderRadius: '0.5rem',
-                                    marginBottom: '2rem',
+                                    padding: '1.25rem 2rem',
+                                    background: msg.includes('Error') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                                    color: msg.includes('Error') ? '#ef4444' : '#22c55e',
+                                    borderRadius: '1.5rem',
+                                    marginBottom: '2.5rem',
                                     textAlign: 'center',
-                                    border: msg.includes('Error') ? '1px solid #fca5a5' : '1px solid #86efac',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    border: `1px solid ${msg.includes('Error') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)'}`,
+                                    fontWeight: '600',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.75rem'
                                 }}>
+                                {msg.includes('Error') ? <Info size={18} /> : <ShieldCheck size={18} />}
                                 {msg}
                             </motion.div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="glass-card" style={{
-                            padding: '3rem',
-                            borderRadius: '1.5rem',
-                            display: 'grid',
-                            gap: '2rem'
-                        }}>
-                            {/* Basic Info Section */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                                <div style={{ gridColumn: 'span 2' }}>
-                                    <label className="admin-label">Product Name</label>
-                                    <input
-                                        required
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        className="admin-input"
-                                        placeholder="e.g. Classic Silk Saree"
-                                    />
+                        <form onSubmit={handleSubmit} className="glass-card" style={{ padding: '4rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
+                                {/* Left Side */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', marginBottom: '-0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <Package size={20} color="#E5C585" /> Basic Information
+                                    </h3>
+
+                                    <div className="admin-input-group">
+                                        <label className="admin-label">Product Name</label>
+                                        <ImageIcon size={18} className="input-icon" />
+                                        <input
+                                            required
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            className="admin-input"
+                                            style={{ borderColor: errors.name ? '#ef4444' : undefined }}
+                                            placeholder="e.g. Classic Silk Saree"
+                                        />
+                                        {errors.name && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.name}</p>}
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Category</label>
+                                            <Layers size={18} className="input-icon" />
+                                            <select
+                                                required
+                                                name="category"
+                                                value={formData.category}
+                                                onChange={handleChange}
+                                                className="admin-input admin-select"
+                                                style={{ borderColor: errors.category ? '#ef4444' : undefined }}
+                                            >
+                                                <option value="">Select</option>
+                                                <option value="Men">Men</option>
+                                                <option value="Women">Women</option>
+                                                <option value="Kids">Kids</option>
+                                            </select>
+                                            {errors.category && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.category}</p>}
+                                        </div>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Price (₹)</label>
+                                            <IndianRupee size={18} className="input-icon" />
+                                            <input
+                                                required
+                                                name="price"
+                                                value={formData.price}
+                                                onChange={handleChange}
+                                                className="admin-input"
+                                                style={{ borderColor: errors.price ? '#ef4444' : undefined }}
+                                                placeholder="999"
+                                            />
+                                            {errors.price && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.price}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Stock</label>
+                                            <Box size={18} className="input-icon" />
+                                            <input
+                                                required
+                                                name="stock"
+                                                type="number"
+                                                min="0"
+                                                value={formData.stock}
+                                                onChange={handleChange}
+                                                className="admin-input"
+                                                style={{ borderColor: errors.stock ? '#ef4444' : undefined }}
+                                                placeholder="0"
+                                            />
+                                            {errors.stock && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.stock}</p>}
+                                        </div>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Image URL</label>
+                                            <ImageIcon size={18} className="input-icon" />
+                                            <input
+                                                required
+                                                name="image"
+                                                value={formData.image}
+                                                onChange={handleChange}
+                                                className="admin-input"
+                                                style={{ borderColor: errors.image ? '#ef4444' : undefined }}
+                                                placeholder="\images\sample.jpg"
+                                            />
+                                            {errors.image && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.image}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="admin-input-group">
+                                        <label className="admin-label">Features (comma separated)</label>
+                                        <Tag size={18} className="input-icon" />
+                                        <input
+                                            name="features"
+                                            value={formData.features}
+                                            onChange={handleChange}
+                                            className="admin-input"
+                                            placeholder="Premium Fabric, Handcrafted"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="admin-label">Category</label>
-                                    <select
-                                        required
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className="admin-input admin-select"
-                                    >
-                                        <option value="" style={{ color: 'black' }}>Select Category</option>
-                                        <option value="Men" style={{ color: 'black' }}>Men</option>
-                                        <option value="Women" style={{ color: 'black' }}>Women</option>
-                                        <option value="Kids" style={{ color: 'black' }}>Kids</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="admin-label">Price (₹)</label>
-                                    <input
-                                        required
-                                        name="price"
-                                        inputMode="numeric"
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        className="admin-input"
-                                        placeholder="999"
-                                    />
+
+                                {/* Right Side */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', marginBottom: '-0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <FileText size={20} color="#E5C585" /> Specifications
+                                    </h3>
+
+                                    <div className="admin-input-group">
+                                        <label className="admin-label">Short Description</label>
+                                        <FileText size={18} className="input-icon" style={{ top: '2.65rem' }} />
+                                        <textarea
+                                            required
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            className="admin-input"
+                                            style={{ height: '84px', resize: 'none', paddingLeft: '2.75rem', borderColor: errors.description ? '#ef4444' : undefined }}
+                                            placeholder="Brief summary for listings..."
+                                        />
+                                        {errors.description && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.description}</p>}
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Material</label>
+                                            <ShoppingBag size={18} className="input-icon" />
+                                            <select
+                                                name="material"
+                                                value={formData.material}
+                                                onChange={handleMaterialChange}
+                                                className="admin-input admin-select"
+                                                style={{ borderColor: errors.material ? '#ef4444' : undefined }}
+                                            >
+                                                <option value="">Select</option>
+                                                {['Cotton', 'Silk', 'Polyester', 'Linen', 'Wool'].map((mat) => (
+                                                    <option key={mat} value={mat}>{mat}</option>
+                                                ))}
+                                            </select>
+                                            {errors.material && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.material}</p>}
+                                        </div>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Origin</label>
+                                            <MapPin size={18} className="input-icon" />
+                                            <input
+                                                name="origin"
+                                                value={formData.origin}
+                                                onChange={handleChange}
+                                                className="admin-input"
+                                                style={{ borderColor: errors.origin ? '#ef4444' : undefined }}
+                                                placeholder="e.g. India"
+                                            />
+                                            {errors.origin && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.origin}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="admin-input-group">
+                                        <label className="admin-label">Care Instructions</label>
+                                        <History size={18} className="input-icon" />
+                                        <input
+                                            name="careInstructions"
+                                            value={formData.careInstructions}
+                                            readOnly
+                                            className="admin-input"
+                                            style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#0f172a' }}
+                                            placeholder="Auto-populated from material..."
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '2rem' }}>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Sizes</label>
+                                            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                                {['S', 'M', 'L', 'XL'].map((size) => (
+                                                    <label key={size} className={`checkbox-label ${formData.sizes.split(',').map(s => s.trim()).includes(size) ? 'active' : ''}`}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.sizes.split(',').map(s => s.trim()).includes(size)}
+                                                            onChange={() => handleSizeChange(size)}
+                                                        />
+                                                        {size}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Colors</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                {['Red', 'Blue', 'Gold', 'Black', 'White'].map((color) => (
+                                                    <label key={color} className={`checkbox-label ${formData.colors.split(',').map(c => c.trim()).includes(color) ? 'active' : ''}`} style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem', minWidth: '60px' }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.colors.split(',').map(c => c.trim()).includes(color)}
+                                                            onChange={() => handleColorChange(color)}
+                                                        />
+                                                        {color}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                                <div>
-                                    <label className="admin-label">Stock Quantity</label>
-                                    <input
-                                        required
-                                        name="stock"
-                                        type="number"
-                                        min="0"
-                                        value={formData.stock}
-                                        onChange={handleChange}
-                                        className="admin-input"
-                                        placeholder="Available units"
-                                    />
-                                </div>
-                                <div style={{ gridColumn: 'span 2' }}>
-                                    <label className="admin-label">Image URL</label>
-                                    <input
-                                        required
-                                        name="image"
-                                        value={formData.image}
-                                        onChange={handleChange}
-                                        className="admin-input"
-                                        placeholder="\images\sample.jpg"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Descriptions */}
-                            <div>
-                                <label className="admin-label">Short Description</label>
-                                <textarea
-                                    required
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    className="admin-input"
-                                    rows="2"
-                                    placeholder="Brief summary for listings..."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="admin-label">Full Description</label>
+                            <div className="admin-input-group" style={{ marginTop: '2.5rem' }}>
+                                <label className="admin-label">Full Product Description</label>
+                                <FileText size={18} className="input-icon" style={{ top: '2.65rem' }} />
                                 <textarea
                                     name="fullDescription"
                                     value={formData.fullDescription}
                                     onChange={handleChange}
                                     className="admin-input"
-                                    rows="4"
-                                    placeholder="Detailed product information..."
+                                    style={{ height: '140px', resize: 'none', paddingLeft: '2.75rem' }}
+                                    placeholder="Detailed product information for customers..."
                                 />
                             </div>
 
-                            {/* Attributes */}
-                            <div>
-                                <label className="admin-label">Features</label>
-                                <input
-                                    name="features"
-                                    value={formData.features}
-                                    onChange={handleChange}
-                                    placeholder="Premium Fabric, Handcrafted, etc. (comma separated)"
-                                    className="admin-input"
-                                />
+                            <div style={{ marginTop: '3.5rem', display: 'flex', gap: '1.5rem' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => navigate(-1)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '1.125rem',
+                                        background: '#fff',
+                                        border: '1.5px solid #e2e8f0',
+                                        borderRadius: '1.25rem',
+                                        color: '#475569',
+                                        fontWeight: '700',
+                                        fontSize: '0.9rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.75rem',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                                    onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                >
+                                    <ArrowLeft size={18} /> Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading || Object.values(errors).some(e => e) || !formData.name || !formData.price}
+                                    style={{
+                                        flex: 2,
+                                        padding: '1.125rem',
+                                        background: (loading || Object.values(errors).some(e => e) || !formData.name || !formData.price) ? '#94a3b8' : '#0F172A',
+                                        border: 'none',
+                                        borderRadius: '1.25rem',
+                                        color: '#FFFFFF',
+                                        fontWeight: '700',
+                                        fontSize: '1rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        cursor: (loading || Object.values(errors).some(e => e) || !formData.name || !formData.price) ? 'not-allowed' : 'pointer',
+                                        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.75rem',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        if (!e.currentTarget.disabled) {
+                                            e.currentTarget.style.background = '#1e293b';
+                                            e.currentTarget.style.transform = 'translateY(-1px)';
+                                        }
+                                    }}
+                                    onMouseOut={(e) => {
+                                        if (!e.currentTarget.disabled) {
+                                            e.currentTarget.style.background = '#0F172A';
+                                            e.currentTarget.style.transform = 'none';
+                                        }
+                                    }}
+                                >
+                                    {loading ? (isEditMode ? <History size={20} className="animate-spin" /> : <Plus size={20} />) : (isEditMode ? <Check size={20} /> : <Plus size={20} />)}
+                                    {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Save Changes' : 'Create Product')}
+                                </button>
                             </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                <div>
-                                    <label className="admin-label">Sizes</label>
-                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', padding: '0.75rem 0' }}>
-                                        {['S', 'M', 'L', 'XL'].map((size) => (
-                                            <label key={size} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.sizes.split(',').map(s => s.trim()).includes(size)}
-                                                    onChange={() => handleSizeChange(size)}
-                                                    style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
-                                                />
-                                                {size}
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="admin-label">Colors</label>
-                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', padding: '0.75rem 0' }}>
-                                        {['Red', 'Blue', 'Gold', 'Black', 'White'].map((color) => (
-                                            <label key={color} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.colors.split(',').map(c => c.trim()).includes(color)}
-                                                    onChange={() => handleColorChange(color)}
-                                                    style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
-                                                />
-                                                {color}
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Product Details */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                <div>
-                                    <label className="admin-label">Material</label>
-                                    <select
-                                        name="material"
-                                        value={formData.material}
-                                        onChange={handleMaterialChange}
-                                        className="admin-input admin-select"
-                                    >
-                                        <option value="" style={{ color: 'black' }}>Select Material</option>
-                                        {['Cotton', 'Silk', 'Polyester', 'Linen', 'Wool'].map((mat) => (
-                                            <option key={mat} value={mat} style={{ color: 'black' }}>{mat}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="admin-label">Origin</label>
-                                    <input
-                                        name="origin"
-                                        value={formData.origin}
-                                        onChange={handleChange}
-                                        className="admin-input"
-                                        placeholder="e.g. India"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="admin-label">Care Instructions</label>
-                                <input
-                                    name="careInstructions"
-                                    value={formData.careInstructions}
-                                    readOnly
-                                    className="admin-input"
-                                    style={{ background: '#f1f5f9', cursor: 'not-allowed' }}
-                                    placeholder="Select a material to see instructions..."
-                                />
-                            </div>
-
-                            <Button
-                                variant="primary"
-                                type="submit"
-                                disabled={loading}
-                                style={{
-                                    marginTop: '1rem',
-                                    width: '100%',
-                                    background: '#0F172A',
-                                    color: '#FFFFFF',
-                                    fontWeight: '600',
-                                    letterSpacing: '0.05em',
-                                    textTransform: 'uppercase',
-                                    border: 'none',
-                                    padding: '1rem',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                                }}
-                            >
-                                {loading ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Product' : 'Add Product')}
-                            </Button>
                         </form>
                     </motion.div>
                 </div>
             </div>
+            <footer style={{ padding: '3rem', textAlign: 'center', background: '#F1F5F9', color: '#94a3b8', fontSize: '0.9rem' }}>
+                &copy; {new Date().getFullYear()} Canon Ball Fashions Admin. All rights reserved.
+            </footer>
         </>
     );
 };
