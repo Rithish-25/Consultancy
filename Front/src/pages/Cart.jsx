@@ -113,10 +113,18 @@ const Cart = () => {
             else if (value.length > 0 && !/^[a-zA-Z\s]*$/.test(value)) error = 'Name can only contain letters';
         }
         if (name === 'phone') {
-            if (value.length > 0 && !/^\d{10}$/.test(value)) error = 'Phone must be exactly 10 digits';
+            if (value.length > 0) {
+                if (!/^\d{10}$/.test(value)) error = 'Phone must be exactly 10 digits';
+                else if (/^(\d)\1{9}$/.test(value)) error = 'Phone number cannot be all same digits';
+                else if ('01234567890123456789'.includes(value) || '98765432109876543210'.includes(value)) error = 'Phone number cannot be sequential';
+            }
         }
         if (name === 'pincode') {
-            if (value.length > 0 && !/^\d{6}$/.test(value)) error = 'Pincode must be exactly 6 digits';
+            if (value.length > 0) {
+                if (!/^\d{6}$/.test(value)) error = 'Pincode must be exactly 6 digits';
+                else if (/^(\d)\1{5}$/.test(value)) error = 'Pincode cannot be all same digits';
+                else if ('01234567890123456'.includes(value) || '98765432109876543'.includes(value)) error = 'Pincode cannot be sequential';
+            }
         }
         if (name === 'address') {
             if (value.length > 0 && value.length < 10) error = 'Please enter a more detailed address';
@@ -413,7 +421,7 @@ const Cart = () => {
                                                             name="phone"
                                                             value={shippingDetails.phone}
                                                             onChange={handleInputChange}
-                                                            placeholder="9876543210"
+                                                            placeholder="Enter Phone Number"
                                                             style={{
                                                                 width: '100%',
                                                                 padding: '1rem',
@@ -460,11 +468,12 @@ const Cart = () => {
                                                     <Hash size={16} color="#94a3b8" /> Pincode
                                                 </label>
                                                 <input
-                                                    type="text"
+                                                    type="number"
                                                     name="pincode"
+                                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                                     value={shippingDetails.pincode}
                                                     onChange={handleInputChange}
-                                                    placeholder="110001"
+                                                    placeholder="Enter Pincode"
                                                     style={{
                                                         width: '100%',
                                                         padding: '1rem',
