@@ -453,15 +453,20 @@ const Collections = () => {
                                                 {/* Content */}
                                                 <div style={{ padding: '1.5rem' }}>
                                                     <h3 style={{
-                                                        fontSize: '1.5rem',
-                                                        marginBottom: '0.5rem',
+                                                        fontSize: '1.4rem',
+                                                        fontWeight: 900,
                                                         fontFamily: "'Playfair Display', serif",
-                                                        color: 'var(--color-primary)'
+                                                        margin: '0 0 0.25rem 0',
+                                                        color: '#000000',
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden',
+                                                        minHeight: '2.8rem'
                                                     }}>
                                                         {costume.name}
                                                     </h3>
-
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.75rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
                                                         <Star size={14} fill="#fbbf24" color="#fbbf24" />
                                                         <span style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', fontWeight: 500 }}>
                                                             {costume.rating ? costume.rating.toFixed(1) : '0.0'} ({costume.numReviews || 0} reviews)
@@ -473,7 +478,11 @@ const Collections = () => {
                                                         fontSize: '0.95rem',
                                                         lineHeight: '1.6',
                                                         marginBottom: '1rem',
-                                                        minHeight: '3rem'
+                                                        minHeight: '3rem',
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden'
                                                     }}>
                                                         {costume.description}
                                                     </p>
@@ -511,13 +520,23 @@ const Collections = () => {
                                                         paddingTop: '1rem',
                                                         borderTop: '1px solid #e2e8f0'
                                                     }}>
-                                                        <span style={{
-                                                            fontSize: '1.5rem',
-                                                            fontWeight: 700,
-                                                            color: 'var(--color-primary)'
-                                                        }}>
-                                                            ₹{costume.price}
-                                                        </span>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>
+                                                                    ₹{costume.price}
+                                                                </span>
+                                                                {costume.originalPrice && Number(costume.originalPrice) > Number(costume.price) && (
+                                                                    <span style={{ fontSize: '0.85rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                                                        ₹{costume.originalPrice}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {costume.originalPrice && Number(costume.originalPrice) > Number(costume.price) && (
+                                                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#22c55e', background: 'rgba(34, 197, 94, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '0.25rem' }}>
+                                                                    {Math.round(((Number(costume.originalPrice) - Number(costume.price)) / Number(costume.originalPrice)) * 100)}% OFF
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <Button
                                                             variant="primary"
                                                             onClick={(e) => {

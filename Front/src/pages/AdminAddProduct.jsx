@@ -31,6 +31,7 @@ const AdminAddProduct = () => {
         name: '',
         category: '',
         price: '',
+        originalPrice: '',
         stock: '',
         description: '',
         image: '',
@@ -54,8 +55,11 @@ const AdminAddProduct = () => {
                 else if (value.length < 3) error = 'Minimum 3 characters required';
                 break;
             case 'price':
-                if (!value) error = 'Price is required';
+                if (!value) error = 'Discount Price is required';
                 else if (Number(value) <= 0) error = 'Price must be greater than 0';
+                break;
+            case 'originalPrice':
+                if (value && Number(value) <= 0) error = 'Original Price must be greater than 0';
                 break;
             case 'category':
                 if (!value) error = 'Category is required';
@@ -75,8 +79,12 @@ const AdminAddProduct = () => {
             case 'material':
                 if (!value) error = 'Material is required';
                 break;
-            case 'origin':
-                if (!value) error = 'Origin is required';
+            case 'features':
+                if (!value) error = 'At least one feature is required';
+                break;
+            case 'fullDescription':
+                if (!value) error = 'Full description is required';
+                else if (value.length < 20) error = 'Minimum 20 characters required';
                 break;
             default:
                 break;
@@ -88,7 +96,7 @@ const AdminAddProduct = () => {
         const { name, value } = e.target;
         let finalValue = value;
 
-        if (name === 'price' || name === 'stock') {
+        if (name === 'price' || name === 'originalPrice' || name === 'stock') {
             finalValue = value.replace(/\D/g, '');
         }
 
@@ -145,6 +153,7 @@ const AdminAddProduct = () => {
                         name: data.name || '',
                         category: data.category || '',
                         price: data.price ? String(data.price) : '',
+                        originalPrice: data.originalPrice ? String(data.originalPrice) : '',
                         stock: data.stock || 0,
                         description: data.description || '',
                         image: data.image || '',
@@ -220,6 +229,7 @@ const AdminAddProduct = () => {
                         name: '',
                         category: '',
                         price: '',
+                        originalPrice: '',
                         stock: '',
                         description: '',
                         image: '',
@@ -454,18 +464,38 @@ const AdminAddProduct = () => {
                                             </select>
                                             {errors.category && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.category}</p>}
                                         </div>
-                                        <div className="admin-input-group">
-                                            <label className="admin-label">Price (₹)</label>
-                                            <IndianRupee size={18} className="input-icon" />
-                                            <input
-                                                required
-                                                name="price"
-                                                value={formData.price}
-                                                onChange={handleChange}
-                                                className="admin-input"
-                                                style={{ borderColor: errors.price ? '#ef4444' : undefined }}
-                                                placeholder="999"
-                                            />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'flex-end' }}>
+                                        <div className="admin-input-group" style={{ position: 'static' }}>
+                                            <label className="admin-label">Original Price (₹)</label>
+                                            <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+                                                <IndianRupee size={18} className="input-icon" style={{ top: '50%', transform: 'translateY(-50%)' }} />
+                                                <input
+                                                    name="originalPrice"
+                                                    value={formData.originalPrice}
+                                                    onChange={handleChange}
+                                                    className="admin-input"
+                                                    style={{ borderColor: errors.originalPrice ? '#ef4444' : undefined }}
+                                                    placeholder="1999"
+                                                />
+                                            </div>
+                                            {errors.originalPrice && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.originalPrice}</p>}
+                                        </div>
+                                        <div className="admin-input-group" style={{ position: 'static' }}>
+                                            <label className="admin-label">Discount Price (Selling Price ₹)</label>
+                                            <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+                                                <IndianRupee size={18} className="input-icon" style={{ top: '50%', transform: 'translateY(-50%)' }} />
+                                                <input
+                                                    required
+                                                    name="price"
+                                                    value={formData.price}
+                                                    onChange={handleChange}
+                                                    className="admin-input"
+                                                    style={{ borderColor: errors.price ? '#ef4444' : undefined }}
+                                                    placeholder="999"
+                                                />
+                                            </div>
                                             {errors.price && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.price}</p>}
                                         </div>
                                     </div>
@@ -503,18 +533,21 @@ const AdminAddProduct = () => {
                                         </div>
                                     </div>
 
-                                    <div className="admin-input-group">
-                                        <label className="admin-label">Features (comma separated)</label>
-                                        <Tag size={18} className="input-icon" />
-                                        <input
-                                            name="features"
-                                            value={formData.features}
-                                            onChange={handleChange}
-                                            className="admin-input"
-                                            placeholder="Premium Fabric, Handcrafted"
-                                        />
+                                        <div className="admin-input-group">
+                                            <label className="admin-label">Features (comma separated)</label>
+                                            <Tag size={18} className="input-icon" />
+                                            <input
+                                                required
+                                                name="features"
+                                                value={formData.features}
+                                                onChange={handleChange}
+                                                className="admin-input"
+                                                style={{ borderColor: errors.features ? '#ef4444' : undefined }}
+                                                placeholder="Premium Fabric, Handcrafted"
+                                            />
+                                            {errors.features && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.features}</p>}
+                                        </div>
                                     </div>
-                                </div>
 
                                 {/* Right Side */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -622,13 +655,15 @@ const AdminAddProduct = () => {
                                 <label className="admin-label">Full Product Description</label>
                                 <FileText size={18} className="input-icon" style={{ top: '2.65rem' }} />
                                 <textarea
+                                    required
                                     name="fullDescription"
                                     value={formData.fullDescription}
                                     onChange={handleChange}
                                     className="admin-input"
-                                    style={{ height: '140px', resize: 'none', paddingLeft: '2.75rem' }}
+                                    style={{ height: '140px', resize: 'none', paddingLeft: '2.75rem', borderColor: errors.fullDescription ? '#ef4444' : undefined }}
                                     placeholder="Detailed product information for customers..."
                                 />
+                                {errors.fullDescription && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.fullDescription}</p>}
                             </div>
 
                             <div style={{ marginTop: '3.5rem', display: 'flex', gap: '1.5rem' }}>

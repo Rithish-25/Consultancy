@@ -352,13 +352,16 @@ const Favorites = () => {
                                                 paddingTop: '1rem',
                                                 borderTop: '1px solid #e2e8f0'
                                             }}>
-                                                <span style={{
-                                                    fontSize: '1.5rem',
-                                                    fontWeight: 700,
-                                                    color: 'var(--color-primary)'
-                                                }}>
-                                                    ₹{product.price}
-                                                </span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0F172A' }}>
+                                                        ₹{product.price}
+                                                    </span>
+                                                    {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+                                                        <span style={{ fontSize: '1rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                                            ₹{product.originalPrice}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <Button
                                                     variant="primary"
                                                     onClick={(e) => {

@@ -294,7 +294,14 @@ const Cart = () => {
                                                                 <span style={{ fontWeight: 600 }}>Size:</span> {item.selectedSize}
                                                             </p>
                                                         )}
-                                                        <p style={{ fontWeight: 700, color: '#0F172A' }}>₹{item.price}</p>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            <p style={{ fontWeight: 700, color: '#0F172A' }}>₹{item.price}</p>
+                                                            {item.originalPrice && Number(item.originalPrice) > Number(item.price) && (
+                                                                <p style={{ fontSize: '0.85rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                                                    ₹{item.originalPrice}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '0.75rem', overflow: 'hidden' }}>

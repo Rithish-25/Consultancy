@@ -316,13 +316,36 @@ const ProductDetails = () => {
                                     minHeight: 'auto'
                                 }}>
                                     {/* Price */}
-                                    <div style={{
-                                        fontSize: '2.5rem',
-                                        fontWeight: 700,
-                                        color: 'var(--color-primary)',
-                                        marginBottom: '1.5rem'
-                                    }}>
-                                        ₹{product.price}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                                        <div style={{
+                                            fontSize: '2.5rem',
+                                            fontWeight: 700,
+                                            color: '#0F172A',
+                                        }}>
+                                            ₹{product.price}
+                                        </div>
+                                        {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+                                            <>
+                                                <div style={{
+                                                    fontSize: '1.25rem',
+                                                    color: '#94a3b8',
+                                                    textDecoration: 'line-through',
+                                                    fontWeight: 500
+                                                }}>
+                                                    ₹{product.originalPrice}
+                                                </div>
+                                                <div style={{
+                                                    background: 'rgba(34, 197, 94, 0.1)',
+                                                    color: '#22c55e',
+                                                    padding: '0.4rem 0.8rem',
+                                                    borderRadius: '0.5rem',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.9rem'
+                                                }}>
+                                                    {Math.round(((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100)}% OFF
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
 
                                     {/* Description */}

@@ -105,7 +105,7 @@ const Navbar = () => {
         top: 0,
         left: 0,
         right: 0,
-        zIndex: 50,
+        zIndex: 999,
         padding: isScrolled ? '1rem 0' : '1.5rem 0',
         backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
         backdropFilter: isScrolled ? 'blur(10px)' : 'none',
