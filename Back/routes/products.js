@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const User = require('../models/User'); // Use User model for checking admin if we add role, or just for future
+const User = require('../models/User'); 
+const auth = require('../middleware/auth');
 
 // Middleware to check if user is admin
 // For this task: "simple role check is enough"
@@ -48,7 +49,53 @@ router.get('/', async (req, res) => {
         res.json(products);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   POST /api/products/:id/reviews
+// @desc    Create new review
+// @access  Private
+router.post('/:id/reviews', auth, async (req, res) => {
+    try {
+        const { rating, comment } = req.body;
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ msg: 'Product not found' });
+        }
+
+        // Initialize reviews array if undefined (for old database entries)
+        if (!product.reviews) {
+            product.reviews = [];
+        }
+
+        const alreadyReviewed = product.reviews.find(
+            r => r.user.toString() === req.user.id.toString()
+        );
+
+        if (alreadyReviewed) {
+            return res.status(400).json({ msg: 'Product already reviewed' });
+        }
+
+        const user = await User.findById(req.user.id);
+
+        const review = {
+            name: user.name,
+            rating: Number(rating),
+            comment,
+            user: req.user.id
+        };
+
+        product.reviews.push(review);
+        product.numReviews = product.reviews.length;
+        product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+        await product.save();
+        res.status(201).json(product.reviews);
+    } catch (err) {
+        console.error('Error in review submission: ', err.message);
+        res.status(500).json({ msg: 'Server error: ' + err.message });
     }
 });
 
@@ -68,7 +115,7 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ msg: 'Product not found' });
         }
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -82,7 +129,7 @@ router.post('/', adminAuth, async (req, res) => {
         res.json(product);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -102,7 +149,7 @@ router.put('/:id', adminAuth, async (req, res) => {
         res.json(product);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

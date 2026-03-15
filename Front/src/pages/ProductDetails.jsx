@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
@@ -13,6 +14,15 @@ const ProductDetails = () => {
     const [product, setProduct] = useState(null);
     const { addToCart } = useCart();
     const [isAdded, setIsAdded] = useState(false);
+    
+    // Review states
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState('');
+    const [reviewLoading, setReviewLoading] = useState(false);
+    const [reviewError, setReviewError] = useState('');
+    const [reviewSuccess, setReviewSuccess] = useState('');
+    const token = localStorage.getItem('token');
+    
     const isAdmin = localStorage.getItem('userRole') === 'admin';
 
     useEffect(() => {
@@ -54,6 +64,50 @@ const ProductDetails = () => {
 
     // ... (Render parts)
 
+
+
+    const submitReview = async (e) => {
+        e.preventDefault();
+        if (rating === 0) {
+            setReviewError('Please select a rating');
+            return;
+        }
+
+        setReviewLoading(true);
+        setReviewError('');
+        setReviewSuccess('');
+
+        try {
+            const res = await fetch(`${API_URL}/products/${id}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ rating, comment })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.msg || 'Error adding review');
+            }
+
+            setReviewSuccess('Review submitted successfully!');
+            setRating(0);
+            setComment('');
+
+            // Refetch product to update reviews instantly
+            const prodRes = await fetch(`${API_URL}/products/${id}`);
+            const prodData = await prodRes.json();
+            setProduct(prodData);
+
+        } catch (err) {
+            setReviewError(err.message);
+        } finally {
+            setReviewLoading(false);
+        }
+    };
 
 
     const handleImageError = (e) => {
@@ -171,6 +225,21 @@ const ProductDetails = () => {
                         >
                             {product.name}
                         </motion.h1>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.25rem', marginBottom: '1rem', color: '#fbbf24' }}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                    key={star}
+                                    size={20}
+                                    fill={star <= (product.rating || 0) ? '#fbbf24' : 'transparent'}
+                                    color={star <= (product.rating || 0) ? '#fbbf24' : '#e2e8f0'}
+                                />
+                            ))}
+                            <span style={{ color: 'white', marginLeft: '0.5rem', fontSize: '1rem' }}>
+                                ({product.numReviews || 0} reviews)
+                            </span>
+                        </div>
+
                         <motion.p
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -466,6 +535,90 @@ const ProductDetails = () => {
                                     </div>
                                 </div>
                             </motion.div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Reviews Section */}
+                <section style={{ padding: '2rem 0 6rem' }}>
+                    <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                        <h2 style={{ fontSize: '2rem', fontFamily: "'Playfair Display', serif", marginBottom: '2rem', textAlign: 'center' }}>
+                            Customer Reviews
+                        </h2>
+
+                        {/* Review List */}
+                        <div style={{ marginBottom: '4rem' }}>
+                            {product.reviews && product.reviews.length > 0 ? (
+                                <div style={{ display: 'grid', gap: '1.5rem' }}>
+                                    {product.reviews.map((review, idx) => (
+                                        <div key={idx} style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', boxShadow: 'var(--shadow-sm)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                <strong style={{ fontSize: '1.1rem' }}>{review.name}</strong>
+                                                <span style={{ color: 'var(--color-text-light)', fontSize: '0.9rem' }}>
+                                                    {new Date(review.createdAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '1rem', color: '#fbbf24' }}>
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star key={star} size={16} fill={star <= review.rating ? '#fbbf24' : 'transparent'} color="#fbbf24" />
+                                                ))}
+                                            </div>
+                                            <p style={{ color: 'var(--color-text)' }}>{review.comment}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={{ textAlign: 'center', color: 'var(--color-text-light)' }}>No reviews yet. Be the first to review!</p>
+                            )}
+                        </div>
+
+                        {/* Review Form */}
+                        <div style={{ background: 'white', padding: '2.5rem', borderRadius: '1.5rem', boxShadow: 'var(--shadow-md)' }}>
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Write a Review</h3>
+                            {token ? (
+                                <form onSubmit={submitReview}>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Rating</label>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    size={32}
+                                                    onClick={() => setRating(star)}
+                                                    fill={star <= rating ? '#fbbf24' : 'transparent'}
+                                                    color={star <= rating ? '#fbbf24' : '#e2e8f0'}
+                                                    style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Comment</label>
+                                        <textarea
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
+                                            rows="4"
+                                            style={{ width: '100%', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', outline: 'none', resize: 'vertical' }}
+                                            placeholder="Tell us what you think..."
+                                            required
+                                        ></textarea>
+                                    </div>
+
+                                    {reviewError && <p style={{ color: '#ef4444', marginBottom: '1rem', fontWeight: 500 }}>{reviewError}</p>}
+                                    {reviewSuccess && <p style={{ color: '#10b981', marginBottom: '1rem', fontWeight: 500 }}>{reviewSuccess}</p>}
+
+                                    <Button variant="primary" type="submit" disabled={reviewLoading} style={{ width: '100%' }}>
+                                        {reviewLoading ? 'Submitting...' : 'Submit Review'}
+                                    </Button>
+                                </form>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '2rem', background: '#f8fafc', borderRadius: '1rem' }}>
+                                    <p style={{ marginBottom: '1rem', color: 'var(--color-text-light)' }}>Please log in to write a review.</p>
+                                    <Link to="/login">
+                                        <Button variant="outline">Login to Review</Button>
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>

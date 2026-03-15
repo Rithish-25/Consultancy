@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Star } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import API_URL from '../config/api';
@@ -459,6 +460,14 @@ const Collections = () => {
                                                     }}>
                                                         {costume.name}
                                                     </h3>
+
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.75rem' }}>
+                                                        <Star size={14} fill="#fbbf24" color="#fbbf24" />
+                                                        <span style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', fontWeight: 500 }}>
+                                                            {costume.rating ? costume.rating.toFixed(1) : '0.0'} ({costume.numReviews || 0} reviews)
+                                                        </span>
+                                                    </div>
+
                                                     <p style={{
                                                         color: 'var(--color-text-light)',
                                                         fontSize: '0.95rem',
