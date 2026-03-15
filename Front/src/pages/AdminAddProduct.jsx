@@ -591,14 +591,36 @@ const AdminAddProduct = () => {
                                         <div className="admin-input-group">
                                             <label className="admin-label">Origin</label>
                                             <MapPin size={18} className="input-icon" />
-                                            <input
+                                            <select
                                                 name="origin"
                                                 value={formData.origin}
                                                 onChange={handleChange}
-                                                className="admin-input"
+                                                className="admin-input admin-select"
                                                 style={{ borderColor: errors.origin ? '#ef4444' : undefined }}
-                                                placeholder="e.g. India"
-                                            />
+                                            >
+                                                <option value="">Select Origin</option>
+                                                <optgroup label="India">
+                                                    <option value="India, Tamil Nadu">Tamil Nadu</option>
+                                                    <option value="India, Gujarat">Gujarat</option>
+                                                    <option value="India, Maharashtra">Maharashtra</option>
+                                                    <option value="India, Rajasthan">Rajasthan</option>
+                                                    <option value="India, West Bengal">West Bengal</option>
+                                                </optgroup>
+                                                <optgroup label="America">
+                                                    <option value="America, California">California</option>
+                                                    <option value="America, New York">New York</option>
+                                                    <option value="America, Texas">Texas</option>
+                                                    <option value="America, North Carolina">North Carolina</option>
+                                                    <option value="America, Georgia">Georgia</option>
+                                                </optgroup>
+                                                <optgroup label="London">
+                                                    <option value="London, East London">East London</option>
+                                                    <option value="London, West End">West End</option>
+                                                    <option value="London, Camden">Camden</option>
+                                                    <option value="London, Islington">Islington</option>
+                                                    <option value="London, Hackney">Hackney</option>
+                                                </optgroup>
+                                            </select>
                                             {errors.origin && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.4rem', marginLeft: '0.5rem' }}>{errors.origin}</p>}
                                         </div>
                                     </div>

@@ -509,7 +509,7 @@ const ProductDetails = () => {
                                         </div>
                                     )}
 
-                                    {/* Material & Care */}
+                                    {/* Material & Care & Origin */}
                                     <div style={{
                                         marginBottom: '2rem',
                                         padding: '1.5rem',
@@ -523,9 +523,15 @@ const ProductDetails = () => {
                                             </div>
                                         )}
                                         {product.careInstructions && (
-                                            <div>
+                                            <div style={{ marginBottom: '1rem' }}>
                                                 <strong style={{ color: 'var(--color-primary)' }}>Care Instructions: </strong>
                                                 <span style={{ color: 'var(--color-text)' }}>{product.careInstructions}</span>
+                                            </div>
+                                        )}
+                                        {product.origin && (
+                                            <div>
+                                                <strong style={{ color: 'var(--color-primary)' }}>Origin: </strong>
+                                                <span style={{ color: 'var(--color-text)' }}>{product.origin}</span>
                                             </div>
                                         )}
                                     </div>
