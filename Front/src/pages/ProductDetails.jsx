@@ -5,12 +5,14 @@ import { Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
+import SizeChartModal from '../components/SizeChartModal';
 import API_URL from '../config/api';
 
 const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [selectedSize, setSelectedSize] = useState(null);
+    const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
     const [product, setProduct] = useState(null);
     const { addToCart } = useCart();
     const [isAdded, setIsAdded] = useState(false);
@@ -390,14 +392,36 @@ const ProductDetails = () => {
                                     {/* Sizes */}
                                     {product.sizes && product.sizes.length > 0 && (
                                         <div style={{ marginBottom: '2rem' }}>
-                                            <h3 style={{
-                                                fontSize: '1.25rem',
-                                                fontWeight: 600,
-                                                marginBottom: '1rem',
-                                                color: 'var(--color-primary)'
-                                            }}>
-                                                Available Sizes
-                                            </h3>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                                <h3 style={{
+                                                    fontSize: '1.25rem',
+                                                    fontWeight: 600,
+                                                    color: 'var(--color-primary)',
+                                                    margin: 0
+                                                }}>
+                                                    Available Sizes
+                                                </h3>
+                                                    <button
+                                                        onClick={() => setIsSizeChartOpen(true)}
+                                                        style={{
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            color: 'var(--color-primary)',
+                                                            textDecoration: 'none',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.25rem',
+                                                            fontSize: '0.9rem'
+                                                        }}
+                                                    >
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                    Size Chart
+                                                </button>
+                                            </div>
                                             <div style={{
                                                 display: 'flex',
                                                 flexWrap: 'wrap',
@@ -622,6 +646,12 @@ const ProductDetails = () => {
                         </div>
                     </div>
                 </section>
+                
+                <SizeChartModal 
+                    isOpen={isSizeChartOpen} 
+                    onClose={() => setIsSizeChartOpen(false)} 
+                    category={product.category} 
+                />
             </div>
         </>
     );
