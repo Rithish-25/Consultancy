@@ -162,58 +162,56 @@ const ProductDetails = () => {
                     textAlign: 'center'
                 }}>
                     <div className="container" style={{ position: 'relative' }}>
-                        <motion.button
-                            onClick={() => navigate(-1)}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.2)' }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={{ duration: 0.3 }}
-                            style={{
-                                position: 'absolute',
-                                top: '2rem',
-                                left: '0',
-                                background: 'rgba(255,255,255,0.1)',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                backdropFilter: 'blur(8px)',
-                                color: 'white',
-                                fontSize: '1rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.75rem 1.25rem',
-                                borderRadius: '50px',
-                                zIndex: 10,
-                                fontWeight: 500,
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                            }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M19 12H5M12 19l-7-7 7-7" />
-                            </svg>
-                            Back
-                        </motion.button>
-                        {isAdmin && (
-                            <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-                                <Link
-                                    to={`/admin/edit-product/${product._id}`}
-                                    style={{
-                                        display: 'inline-block',
-                                        padding: '0.5rem 1.5rem',
-                                        background: 'rgba(255,255,255,0.2)',
-                                        color: 'white',
-                                        borderRadius: '0.5rem',
-                                        textDecoration: 'none',
-                                        fontWeight: 600,
-                                        border: '1px solid rgba(255,255,255,0.4)',
-                                        backdropFilter: 'blur(4px)'
-                                    }}
-                                >
-                                    ✏️ Edit Product
-                                </Link>
-                            </div>
-                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                            <motion.button
+                                onClick={() => navigate(-1)}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.2)' }}
+                                whileTap={{ scale: 0.95 }}
+                                transition={{ duration: 0.3 }}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    backdropFilter: 'blur(8px)',
+                                    color: 'white',
+                                    fontSize: '1rem',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.75rem 1.25rem',
+                                    borderRadius: '50px',
+                                    fontWeight: 500,
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                                </svg>
+                                Back
+                            </motion.button>
+                            {isAdmin && (
+                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Link
+                                        to={`/admin/edit-product/${product._id}`}
+                                        style={{
+                                            display: 'inline-block',
+                                            padding: '0.5rem 1.5rem',
+                                            background: 'rgba(255,255,255,0.2)',
+                                            color: 'white',
+                                            borderRadius: '0.5rem',
+                                            textDecoration: 'none',
+                                            fontWeight: 600,
+                                            border: '1px solid rgba(255,255,255,0.4)',
+                                            backdropFilter: 'blur(4px)'
+                                        }}
+                                    >
+                                        ✏️ Edit Product
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                         <motion.h1
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -281,9 +279,12 @@ const ProductDetails = () => {
                             >
                                 <div style={{
                                     width: '100%',
-                                    aspectRatio: '4/3',
+                                    aspectRatio: '4/5',
                                     overflow: 'hidden',
-                                    backgroundColor: '#e2e8f0'
+                                    backgroundColor: '#f8fafc',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}>
                                     <img
                                         src={product.image}

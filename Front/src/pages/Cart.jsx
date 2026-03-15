@@ -265,11 +265,11 @@ const Cart = () => {
                                 </Link>
                             </div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: step === 'cart' ? '2fr 1fr' : '1fr', gap: '2rem', alignItems: 'start' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'start' }}>
                                 {/* Cart Items Step */}
                                 {step === 'cart' && (
                                     <>
-                                        <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                                        <div style={{ flex: '1 1 500px', background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                             {cart.map(item => (
                                                 <div key={item._id} style={{
                                                     display: 'flex',
@@ -277,14 +277,15 @@ const Cart = () => {
                                                     borderBottom: '1px solid #f1f5f9',
                                                     paddingBottom: '1.5rem',
                                                     marginBottom: '1.5rem',
-                                                    alignItems: 'center'
+                                                    alignItems: 'center',
+                                                    flexWrap: 'wrap'
                                                 }}>
                                                     <img
                                                         src={item.image}
                                                         alt={item.name}
                                                         style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '1rem' }}
                                                     />
-                                                    <div style={{ flex: 1 }}>
+                                                    <div style={{ flex: '1 1 min-content', minWidth: '150px' }}>
                                                         <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>{item.name}</h3>
                                                         <p style={{ color: 'var(--color-text-light)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
                                                             {item.category}
@@ -303,7 +304,7 @@ const Cart = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '0.75rem', overflow: 'hidden' }}>
                                                             <button
                                                                 onClick={() => updateQuantity(item._id, item.quantity - 1, item.selectedSize)}
@@ -348,7 +349,7 @@ const Cart = () => {
                                             ))}
                                         </div>
 
-                                        <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', position: 'sticky', top: '100px' }}>
+                                        <div style={{ flex: '1 1 300px', minWidth: '280px', background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', position: 'sticky', top: '100px' }}>
                                             <h3 style={{ fontSize: '1.25rem', fontFamily: "'Playfair Display', serif", marginBottom: '1.5rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
                                                 Order Summary
                                             </h3>
@@ -373,7 +374,7 @@ const Cart = () => {
 
                                 {/* Shipping Details Step */}
                                 {step === 'shipping' && (
-                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '700px', margin: '0 auto' }}>
+                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', width: '100%', margin: '0 auto' }}>
                                         <div style={{ display: 'grid', gap: '2rem' }}>
                                             {/* Name & Phone Grid */}
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
@@ -478,30 +479,35 @@ const Cart = () => {
                                                 {errors.pincode && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Info size={12} /> {errors.pincode}</p>}
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', width: '100%' }}>
                                                 <Button
                                                     variant="secondary"
                                                     style={{
                                                         flex: 1,
-                                                        padding: '1.125rem',
+                                                        padding: '1.25rem 0.5rem',
                                                         borderRadius: '1rem',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        gap: '0.5rem'
+                                                        gap: '0.25rem',
+                                                        fontSize: 'clamp(0.7rem, 2.5vw, 1rem)',
+                                                        whiteSpace: 'nowrap'
                                                     }}
                                                     onClick={() => setStep('cart')}
                                                 >
-                                                    <ArrowLeft size={18} /> Back to Cart
+                                                    <ArrowLeft size={16} /> Back to Cart
                                                 </Button>
                                                 <Button
                                                     variant="primary"
                                                     style={{
                                                         flex: 1.5,
-                                                        padding: '1.125rem',
+                                                        padding: '1.25rem 0.5rem',
                                                         borderRadius: '1rem',
                                                         background: (!shippingDetails.name || !shippingDetails.phone || !shippingDetails.address || !shippingDetails.pincode || Object.values(errors).some(e => e)) ? '#94a3b8' : '#0F172A',
-                                                        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)'
+                                                        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)',
+                                                        fontSize: 'clamp(0.7rem, 2.5vw, 1rem)',
+                                                        textAlign: 'center',
+                                                        whiteSpace: 'nowrap'
                                                     }}
                                                     disabled={
                                                         !shippingDetails.name || !shippingDetails.phone || !shippingDetails.address || !shippingDetails.pincode ||
@@ -518,7 +524,7 @@ const Cart = () => {
 
                                 {/* Payment Method Step */}
                                 {step === 'payment' && (
-                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '600px', margin: '0 auto' }}>
+                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', width: '100%', margin: '0 auto' }}>
                                         <h3 style={{ fontSize: '1.5rem', fontFamily: "'Playfair Display', serif", marginBottom: '2rem', textAlign: 'center' }}>Choose Payment Method</h3>
                                         <div style={{ display: 'grid', gap: '1.25rem' }}>
                                             <button
