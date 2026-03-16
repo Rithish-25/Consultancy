@@ -47,7 +47,20 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['COD', 'Card', 'GPay']
+        enum: ['COD', 'Card', 'GPay', 'UPI Scan', 'Razorpay']
+    },
+    razorpay_order_id: {
+        type: String
+    },
+    razorpay_payment_id: {
+        type: String
+    },
+    razorpay_signature: {
+        type: String
+    },
+    paid: {
+        type: Boolean,
+        default: false
     },
     status: {
         type: String,

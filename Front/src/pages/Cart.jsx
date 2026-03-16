@@ -9,6 +9,9 @@ import {
     CreditCard,
     ArrowLeft,
     Check,
+    CheckCircle,
+    Smartphone,
+    QrCode,
     ShieldCheck,
     Hash,
     Truck,
@@ -20,6 +23,16 @@ import Button from '../components/Button';
 import { useCart } from '../context/CartContext';
 import API_URL from '../config/api';
 import SuccessModal from '../components/SuccessModal';
+
+const loadRazorpay = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
 
 const CheckoutStepper = ({ currentStep }) => {
     const steps = [
@@ -225,10 +238,101 @@ const Cart = () => {
         }
     };
 
+    const initiateRazorpayPayment = async () => {
+        const token = localStorage.getItem('token');
+        setLoading(true);
+
+        try {
+            // 1. Create order on backend
+            const res = await fetch(`${API_URL}/payments/create-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ amount: cartTotal })
+            });
+
+            const order = await res.json();
+            if (!res.ok) throw new Error(order.msg || 'Could not create payment order');
+
+            // 2. Load Razorpay script
+            const isLoaded = await loadRazorpay();
+            if (!isLoaded) {
+                alert('Razorpay SDK failed to load. Are you online?');
+                setLoading(false);
+                return;
+            }
+
+            // 3. Open Razorpay Checkout
+            const options = {
+                key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+                amount: order.amount,
+                currency: order.currency,
+                name: "CanonBall Fashions",
+                description: "Purchase Payment",
+                order_id: order.id,
+                handler: async function (response) {
+                    // 4. Verify payment on backend
+                    setLoading(true);
+                    try {
+                        const verifyRes = await fetch(`${API_URL}/payments/verify`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-auth-token': token
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                orderData: {
+                                    items: cart,
+                                    totalAmount: cartTotal,
+                                    shippingDetails
+                                }
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        if (verifyRes.ok) {
+                            clearCart();
+                            setShowSuccess(true);
+                        } else {
+                            alert('Payment verification failed: ' + verifyData.msg);
+                        }
+                    } catch (err) {
+                        alert('Verification error: ' + err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                },
+                prefill: {
+                    name: shippingDetails.name,
+                    contact: shippingDetails.phone
+                },
+                theme: {
+                    color: "#0F172A"
+                },
+                modal: {
+                    ondismiss: function() {
+                        setLoading(false);
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        } catch (err) {
+            alert('Payment failed: ' + err.message);
+            setLoading(false);
+        }
+    };
+
     const handlePaymentSelect = (method) => {
         setPaymentMethod(method);
         if (method === 'GPay') {
-            setStep('gpay');
+            initiateRazorpayPayment();
         } else if (method === 'Card') {
             setStep('card');
         } else {
@@ -241,9 +345,7 @@ const Cart = () => {
         navigate('/');
     };
 
-    const upiID = "rithish0637@okhdfcbank";
-    const upiLink = `upi://pay?pa=${upiID}&pn=CanonBall%20Fashions&am=${cartTotal}&cu=INR`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
+
 
     return (
         <>
@@ -734,37 +836,7 @@ const Cart = () => {
                                     </div>
                                 )}
 
-                                {/* GPay Scanner Step */}
-                                {step === 'gpay' && (
-                                    <div style={{ background: 'white', borderRadius: '2rem', padding: '3rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
-                                        <div style={{ width: '64px', height: '64px', borderRadius: '1.25rem', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
-                                            <Wallet size={32} color="#0F172A" />
-                                        </div>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Scan to Pay ₹{cartTotal.toLocaleString()}</h3>
-                                        <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '2.5rem' }}>Open GPay or any UPI app to scan</p>
 
-                                        <div style={{ background: '#f8fafc', padding: '2.5rem', borderRadius: '2rem', marginBottom: '2.5rem', display: 'flex', justifyContent: 'center', border: '2px solid #f1f5f9' }}>
-                                            <img src={qrCodeUrl} alt="UPI QR Code" style={{ width: '200px', height: '200px', borderRadius: '1rem' }} />
-                                        </div>
-
-                                        <div style={{ marginBottom: '2.5rem', padding: '1rem', borderRadius: '1rem', background: 'rgba(15, 23, 42, 0.03)' }}>
-                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem', fontWeight: 700 }}>Merchant Name</div>
-                                            <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '1.1rem' }}>CanonBall Fashions</div>
-                                        </div>
-
-                                        <div style={{ display: 'grid', gap: '1.25rem' }}>
-                                            <Button
-                                                variant="primary"
-                                                style={{ padding: '1.125rem', borderRadius: '1rem', boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.2)' }}
-                                                onClick={() => submitOrder('GPay')}
-                                                disabled={loading}
-                                            >
-                                                {loading ? 'Processing...' : 'I have Paid'}
-                                            </Button>
-                                            <Button variant="secondary" style={{ borderRadius: '1rem' }} onClick={() => setStep('payment')}>Cancel</Button>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </motion.div>
