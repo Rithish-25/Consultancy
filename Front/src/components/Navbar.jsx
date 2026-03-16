@@ -107,17 +107,13 @@ const Navbar = () => {
         right: 0,
         zIndex: 999,
         padding: isScrolled ? '1rem 0' : '1.5rem 0',
-        backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
-        backdropFilter: isScrolled ? 'blur(10px)' : 'none',
+        backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(10px)',
         boxShadow: isScrolled ? 'var(--shadow-md)' : 'none',
         transition: 'all 0.3s ease',
     };
 
-    // Pages with dark hero backgrounds should have white navbar text
-    const pagesWithDarkHero = ['/', '/about', '/collections', '/admin/add-product', '/admin/orders', '/favorites'];
-    const isProductDetailsPage = location.pathname.startsWith('/collections/') && location.pathname !== '/collections';
-    const isAdminEditPage = location.pathname.startsWith('/admin/edit-product');
-    const shouldUseWhiteText = !isScrolled && (pagesWithDarkHero.includes(location.pathname) || isProductDetailsPage || isAdminEditPage);
+    const shouldUseWhiteText = false; // Always use dark text for visibility on light translucent background
 
     const linkStyle = {
         color: shouldUseWhiteText ? 'var(--color-white)' : 'var(--color-text)',

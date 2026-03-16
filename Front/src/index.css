@@ -175,14 +175,14 @@ a {
   /* On desktop, allow transparent navbar for pages with dark backgrounds */
   @media (min-width: 769px) {
     nav.navbar-transparent {
-      background-color: transparent !important;
-      backdrop-filter: none !important;
+      background-color: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(10px) !important;
       box-shadow: none !important;
     }
   }
 
   nav.navbar-scrolled {
-    background-color: rgba(255, 255, 255, 0.9) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(10px) !important;
   }
 
@@ -198,11 +198,11 @@ a {
   /* On desktop, allow white text for transparent navbar on dark backgrounds */
   @media (min-width: 769px) {
     nav.navbar-transparent .navbar-logo-text {
-      color: inherit !important;
+      color: var(--color-primary) !important;
     }
 
     nav.navbar-transparent .mobile-menu-btn .hamburger-line {
-      background-color: inherit !important;
+      background-color: var(--color-primary) !important;
     }
   }
 
@@ -455,4 +455,5 @@ input[type=number]::-webkit-outer-spin-button {
 }
 input[type=number] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
