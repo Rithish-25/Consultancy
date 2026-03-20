@@ -70,14 +70,6 @@ router.post('/:id/reviews', auth, async (req, res) => {
             product.reviews = [];
         }
 
-        const alreadyReviewed = product.reviews.find(
-            r => r.user.toString() === req.user.id.toString()
-        );
-
-        if (alreadyReviewed) {
-            return res.status(400).json({ msg: 'Product already reviewed' });
-        }
-
         const user = await User.findById(req.user.id);
 
         const review = {
